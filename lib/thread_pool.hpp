@@ -38,7 +38,17 @@ class ThreadPool {
          */
         void add_job(T job);
 
-        static void* 
+        typedef struct {
+            ThreadPool* this_tp;
+            void* thread_id;
+        } ThreadArgs;
+
+        static void* pthread_worker_wrapper(void* object) {
+            ThreadArgs* ta = reinterpret_cast<ThreadArgs*>(object);
+            ta->this_tp->worker_wrapper(ta->thread_id);
+            free(ta);
+            return NULL;
+        }
         
         /**
          * @brief Destroy the Thread Pool object

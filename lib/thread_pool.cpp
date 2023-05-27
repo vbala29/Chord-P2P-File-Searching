@@ -44,7 +44,15 @@ ThreadPool<T>::ThreadPool(uint16_t num_workers, workerFunction wf) {
             exit(1);
         }
         void* num =  (void*)(intptr_t) i; 
-        pthread_create(thread_ID, NULL, &ThreadPool::worker_wrapper, num);
+        ThreadArgs* ta = (ThreadArgs*) malloc(sizeof(ThreadArgs));
+        if (ta == NULL) {
+            perror("Malloc issue for ThreadArgs");
+            exit(1);
+        }
+        ta->this_tp = this;
+        ta->thread_id = num;
+
+        pthread_create(thread_ID, NULL, &ThreadPool::pthread_worker_wrapper, ta);
         threads.push_back(thread_ID);
     }
 }
@@ -68,7 +76,7 @@ ThreadPool<T>::~ThreadPool() {
         free(t);
     }
 
-    pthread_mutex_detroy(&lock);
+    pthread_mutex_destroy(&lock);
     pthread_cond_destroy(&cond_var);
     pthread_mutexattr_destroy(&mutex_attributes);
 }
@@ -86,6 +94,7 @@ void* ThreadPool<T>::worker_wrapper(void* args) {
         //Execute the job
         this->wf(job_to_execute, args);
     }
+    return NULL;
 }
 
 template class ThreadPool<ChordJob>;

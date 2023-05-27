@@ -6,7 +6,7 @@ PROG=tp_test
 #
 override CPPFLAGS += -DNDEBUG -DPROMPT=$(PROMPT)
 
-CC = clang++ -std=c++11
+CC = clang++ -lpthread  -std=c++11
 
 CFLAGS = -Wall -Werror -g
 
@@ -24,11 +24,9 @@ test : $(TEST_OBJS) $(TP_OBJS)
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:.c=.o)
-all :  $(OBJS) $(TEST_OBJS)  $(TP_OBJS)
-	$(CC) -o $@ $^
+
+chord :  $(OBJS) $(TEST_OBJS) $(TP_OBJS)
+	$(CC) -o $@ $^ 
  
-
-all : 
-
 clean :
 	$(RM) $(TP_OBJS) $(TEST_OBJS) $(PROG) ./bin/*

@@ -7,12 +7,13 @@ void chordFunction(ChordJob cj, void* args) {
 }
 
 void tp_test() {
+    fprintf(stderr, "Beginning Thread Pool Test \n--------------------------------- \n");
     ThreadPool<ChordJob>::workerFunction wf = chordFunction;
     ThreadPool<ChordJob> tp(5, wf);
 
     for (int i = 0; i < 10; i++) {
         ChordJob cj = {i};
-        std::async(std::launch::async, &ThreadPool<ChordJob>::add_job, tp, cj);
+        tp.add_job(cj);
     }
 }
 
