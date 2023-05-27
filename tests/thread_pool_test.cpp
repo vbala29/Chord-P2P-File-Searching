@@ -1,9 +1,10 @@
 #include "../lib/thread_pool.hpp"
 #include <future>
 #include "../src/chord_job.hpp"
+#include <unistd.h>
 
 void chordFunction(ChordJob cj, void* args) {
-    fprintf(stdout, "THREAD: %i \n \t The val of this chord job is %i \n", (int) (intptr_t) args, cj.val);
+    fprintf(stderr, "THREAD: %i. The val of this chord job is %i \n", (int) (intptr_t) args, cj.val);
 }
 
 void tp_test() {
@@ -14,6 +15,13 @@ void tp_test() {
     for (int i = 0; i < 10; i++) {
         ChordJob cj = {i};
         tp.add_job(cj);
+    }
+
+    
+
+    for (;;)  {
+        tp.assign_job();
+        usleep(500000);
     }
 }
 
