@@ -50,7 +50,7 @@ ThreadPool<T>::ThreadPool(uint16_t num_workers, workerFunction wf) {
 template <typename T>
 void ThreadPool<T>::add_job(T job) {
     pthread_mutex_lock(&lock);
-    jobs.push_back(job);
+    jobs.push(job);
     pthread_mutex_unlock(&lock);
 }
 
@@ -67,9 +67,11 @@ void* ThreadPool<T>::worker_wrapper(void* args) {
     for (;;) {
         pthread_mutex_lock(&lock); //Prevent access to job queue
         if (jobs.empty()) pthread_cond_wait(&cond_var, &lock);
+        T job_to_execute = jobs.front();
+        jobs.pop();
+        pthread_mutex_unlock(&lock);
+
         
-
-
     }
     
 
