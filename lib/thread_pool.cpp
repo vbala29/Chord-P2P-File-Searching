@@ -4,7 +4,8 @@
  * Copyright © 2023 Vikram Bala
  */
 
-#include "../include/thread_pool.hpp"
+#include "thread_pool.hpp"
+#include "../src/chord_job.hpp"
 
 
 template <typename T>
@@ -43,7 +44,7 @@ ThreadPool<T>::ThreadPool(uint16_t num_workers, workerFunction wf) {
             exit(1);
         }
         void* num =  (void*)(intptr_t) i; 
-        pthread_create(&thread_ID, NULL, &ThreadPool::worker_wrapper, num);
+        pthread_create(thread_ID, NULL, &ThreadPool::worker_wrapper, num);
         threads.push_back(thread_ID);
     }
 }
@@ -87,3 +88,4 @@ void* ThreadPool<T>::worker_wrapper(void* args) {
     }
 }
 
+template class ThreadPool<ChordJob>;

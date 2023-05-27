@@ -14,12 +14,17 @@ TP_SRCS = $(wildcard ./lib/*.cpp)
 TP_OBJS = $(TP_SRCS:.c=.o)
 
 tp : $(TP_OBJS)
-	$(CC) -c $^
+	$(CC) $^
 
 TEST_SRCS = $(wildcard ./tests/*.cpp)
 TEST_OBJS = $(TEST_SRCS:.c=.o)
 
 test : $(TEST_OBJS) $(TP_OBJS)
+	$(CC) $^
+
+SRCS = $(wildcard *.cpp)
+OBJS = $(SRCS:.c=.o)
+all :  $(OBJS) $(TEST_OBJS)  $(TP_OBJS)
 	$(CC) -o $@ $^
  
 

@@ -37,6 +37,8 @@ class ThreadPool {
          * @param job 
          */
         void add_job(T job);
+
+        static void* 
         
         /**
          * @brief Destroy the Thread Pool object
