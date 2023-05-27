@@ -35,14 +35,15 @@ ThreadPool<T>::ThreadPool(uint16_t num_workers, workerFunction wf) {
         exit(1);
     }
 
-    for (int i = 0; i < min(MAX_THREADS, num_workers); i++) {
+    uint16_t thread_count = std::min((uint16_t) MAX_THREADS, num_workers);
+    for (int i = 0; i < thread_count; i++) {
         pthread_t* thread_ID = (pthread_t*) malloc(sizeof(pthread_t));
-        if (thread == NULL) {
+        if (thread_ID == NULL) {
             perror("malloc error for pthread_t");
             exit(1);
         }
-
-        pthread_create(&thread_ID, NULL, worker_wrapper, NULL);
+        void* num =  (void*)(intptr_t) i; 
+        pthread_create(&thread_ID, NULL, &ThreadPool::worker_wrapper, num);
         threads.push_back(thread_ID);
     }
 }
@@ -52,13 +53,23 @@ void ThreadPool<T>::add_job(T job) {
     pthread_mutex_lock(&lock);
     jobs.push(job);
     pthread_mutex_unlock(&lock);
+    
+    pthread_cond_signal(&cond_var);
 }
 
 template <typename T>
 ThreadPool<T>::~ThreadPool() {
     for (pthread_t* t : threads) {
+        if (pthread_join(*t, NULL) != 0) {
+            perror("pthread_join() faced an error, continuing to join other threads");
+        }
         //free dynamically allocated stuff
+        free(t);
     }
+
+    pthread_mutex_detroy(&lock);
+    pthread_cond_destroy(&cond_var);
+    pthread_mutexattr_destroy(&mutex_attributes);
 }
 
 
@@ -71,11 +82,8 @@ void* ThreadPool<T>::worker_wrapper(void* args) {
         jobs.pop();
         pthread_mutex_unlock(&lock);
 
-        
+        //Execute the job
+        this->wf(job_to_execute, args);
     }
-    
-
-
-
 }
 

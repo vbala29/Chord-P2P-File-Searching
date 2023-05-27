@@ -6,8 +6,10 @@
 
 
 #include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdint>
+#include <queue>
 
 #define MAX_THREADS 100
 
@@ -19,7 +21,7 @@ class ThreadPool {
          * @brief 
          * 
          */
-        typedef void (*workerFunction)(T);
+        typedef void (*workerFunction)(T, void* args);
         
         /**
          * @brief Construct a new Thread Pool object
