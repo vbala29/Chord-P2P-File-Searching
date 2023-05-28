@@ -17,12 +17,8 @@ void tp_test() {
         tp.add_job(cj);
     }
 
-    
+    sleep(2);    
 
-    for (;;)  {
-        tp.assign_job();
-        usleep(500000);
-    }
 }
 
 

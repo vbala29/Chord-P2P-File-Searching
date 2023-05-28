@@ -6,6 +6,7 @@
 
 #include "thread_pool.hpp"
 #include "../src/chord_job.hpp"
+#include <unistd.h>
 
 void initMutexAndCondAttr(pthread_mutex_t& mutex, pthread_mutexattr_t& attr, pthread_cond_t& cond_var) {
     if (pthread_mutexattr_init(&attr) != 0) {
@@ -48,6 +49,17 @@ void initMutexAndAttr(pthread_mutex_t& mutex, pthread_mutexattr_t& attr) {
     }
 }
 
+template <typename T>
+void* assigner_function(void* args) {
+    for (;;)  {
+        reinterpret_cast<ThreadPool<T>*>(args)->assign_job();
+        usleep(100000);
+    }
+
+    return NULL;
+}
+
+
 
 template <typename T>
 ThreadPool<T>::ThreadPool(uint16_t num_workers, workerFunction wf) {
@@ -69,6 +81,7 @@ ThreadPool<T>::ThreadPool(uint16_t num_workers, workerFunction wf) {
             perror("malloc error for pthread_t");
             exit(1);
         }
+
         void* num =  (void*)(intptr_t) i; 
         ThreadArgs* ta = (ThreadArgs*) malloc(sizeof(ThreadArgs));
         if (ta == NULL) {
@@ -101,6 +114,14 @@ ThreadPool<T>::ThreadPool(uint16_t num_workers, workerFunction wf) {
         pthread_create(thread_ID, NULL, &ThreadPool::pthread_worker_wrapper, ta);
         threads.push_back(thread_ID);
     }
+
+    assigner_thread = (pthread_t*) malloc(sizeof(pthread_t));
+    if (assigner_thread == NULL) {
+            perror("malloc error for pthread_t");
+            exit(1);
+    }
+
+    pthread_create(assigner_thread, NULL, assigner_function<ChordJob>, this);
 
     fprintf(stderr, "Finished ThreadPool() \n");
 }
@@ -163,6 +184,11 @@ ThreadPool<T>::~ThreadPool() {
         pthread_cond_destroy(c);
         free(c);
     }
+
+    if (pthread_cancel(*assigner_thread) != 0) {
+        perror("pthread_cancel() faced an error, continuing to cancel other threads");
+    }
+    free(assigner_thread);
 
 
 }
