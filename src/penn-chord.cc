@@ -170,14 +170,14 @@ void PennChord::FixFingers() {
 
 void PennChord::FindSuccessor(uint32_t hashOfNode) {
   fixingFingers = true;
-  Ptr<Packet> packet = Create<Packet>();
+
   PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
   findPredReq.SetFindPredReq(currNumber + "," + std::to_string(hashOfNode) + "," + HASHED_FIELD); //0 because we are giving it the hashed value
-  packet->AddHeader(findPredReq);
 
   std::string closest_finger = ClosestPrecedingNode(hashOfNode);
   uint32_t closest_finger_number = static_cast<uint32_t>(std::stoul(closest_finger));
-  m_socket->SendTo (packet, 0, InetSocketAddress (m_nodeAddressMap.at(closest_finger_number), m_appPort)); 
+
+  sendTo(findPredReq, m_appPort, m_nodeAddressMap.at(closest_finger_number));
 }
 
 void PennChord::Stabilize() {
@@ -188,11 +188,11 @@ void PennChord::Stabilize() {
   if (inRing && successorNumber != currNumber && predecessorNumber != currNumber) { //Ring consists of more than one node and both nodes' fields are initialized 
     // FIND PRED REQUEST FOR YOUR SUCCESSOR'S PRED
     tryingToJoin = false;
-    Ptr<Packet> packet = Create<Packet>();
+
     PennChordMessage stabilizeReq = PennChordMessage(PennChordMessage::MessageType::STABILIZE_REQ);
     stabilizeReq.SetStabilizeReq("");
-    packet->AddHeader(stabilizeReq);
-    m_socket->SendTo (packet, 0, InetSocketAddress (successorIP, m_appPort));
+
+    sendTo(stabilizeReq, m_appPort, successorIP);
   }
 
   m_stabilizeTimer.Schedule();
@@ -202,11 +202,11 @@ void PennChord::ProcessStabilizeReq(PennChordMessage message, Ipv4Address source
   std::string fromNode = ReverseLookup(sourceAddress);
   std::string stabilizeMessage = message.GetStabilizeReq().stabilizeMessage;
   if (DEBUG) CHORD_LOG ("Received STABILIZE_REQ, From Node: " << fromNode << ", Message: " << stabilizeMessage);
-  Ptr<Packet> packet = Create<Packet>();
+
   PennChordMessage stabilizeRsp = PennChordMessage(PennChordMessage::MessageType::STABILIZE_RSP);
   stabilizeRsp.SetStabilizeRsp(predecessorNumber);
-  packet->AddHeader(stabilizeRsp);
-  m_socket->SendTo (packet, 0, InetSocketAddress (sourceAddress, m_appPort));
+
+  sendTo(stabilizeRsp, m_appPort, sourceAddress);
 }
 
 
@@ -233,11 +233,10 @@ void PennChord::ProcessStabilizeRsp(PennChordMessage message, Ipv4Address source
 void PennChord::Notify() {
   haveNotifiedOnce = true;
 
-  Ptr<Packet> packet = Create<Packet>();
   PennChordMessage notify = PennChordMessage(PennChordMessage::MessageType::NOTIFY);
   notify.SetNotify("");
-  packet->AddHeader(notify);
-  m_socket->SendTo (packet, 0, InetSocketAddress (successorIP, m_appPort));
+
+  sendTo(notify, m_appPort, successorIP);
   
 }
 
@@ -270,13 +269,14 @@ void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddres
 
 void PennChord::Lookup(uint32_t id_hash) {
     CHORD_LOG("LookupIssue<" << std::to_string(currHash) << ", " << std::to_string(id_hash) << ">");
-    Ptr<Packet> packet = Create<Packet>();
+
     PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
     findPredReq.SetFindPredReq(currNumber + "," + std::to_string(id_hash) + "," + HASHED_FIELD + "," + (makingSearchQuery ? SEARCH_QUERY : PUBLISH_QUERY) + ",0"); //The 0 if for the initial hop count size.
-    packet->AddHeader(findPredReq);
+
     std::string closestNodeString = ClosestPrecedingNode(id_hash);
     Ipv4Address nextToSendTo = m_nodeAddressMap.at(static_cast<uint32_t>(std::stoul(closestNodeString)));
-    m_socket->SendTo (packet, 0, InetSocketAddress (nextToSendTo, m_appPort));
+
+    sendTo(findPredReq, m_appPort, nextToSendTo);
 
     totalLookups++; //Update total lookups
 }
@@ -374,7 +374,7 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
 
   // you're at the final node (send response back to original requester)
   if (isSingleton || ((successorHash > currHash && hashOfNode > currHash && hashOfNode <= successorHash) || (successorHash <= currHash && (hashOfNode > currHash || hashOfNode <= successorHash)))) {
-    Ptr<Packet> packet = Create<Packet>();
+
     PennChordMessage findPredRsp = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_RSP);
 
     std::string rsp = currNumber + "," + successorNumber + "," + predecessorNumber; 
@@ -393,19 +393,16 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
     }
 
     findPredRsp.SetFindPredRsp(rsp);
-    packet->AddHeader(findPredRsp);
+
     if (DEBUG) fprintf(stderr, "\t FIND_PRED_Request RSP message: %s. SuccHash: %u, CurrHash: %u, targHash: %u\n", findPredRsp.GetFindPredRsp().findPredMessage.c_str(), successorHash, currHash, hashOfNode);
     // CHORD_LOG("LookupIssue<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ">");
     Ipv4Address requesterNodeIP = m_nodeAddressMap.at(requesterNode);
 
-
-    m_socket->SendTo (packet, 0, InetSocketAddress (requesterNodeIP, m_appPort));
+    sendTo(findPredRsp, m_appPort, requesterNodeIP);
 
   // you're a forwarding node (send response to closest finger)
   } else {
   
-
-    Ptr<Packet> packet = Create<Packet>();
     PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
 
     std::string msgString;
@@ -421,7 +418,6 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
     } else msgString = findPredMessage;
 
     findPredReq.SetFindPredReq(msgString); //The total hop count);
-    packet->AddHeader(findPredReq);
 
     std::string closestFingerString = ClosestPrecedingNode(hashOfNode);
     Ipv4Address nextToSendTo = m_nodeAddressMap.at(static_cast<uint32_t>(std::stoul(closestFingerString)));
@@ -432,7 +428,7 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
       CHORD_LOG("LookupRequest<" << std::to_string(currHash) << ">: NextHop<" << closestFingerString << ", " << PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(closestFingerString)))) << ", " << std::to_string(hashOfNode) << ">");
      }
     
-    m_socket->SendTo (packet, 0, InetSocketAddress (nextToSendTo, m_appPort));
+    sendTo(findPredReq, m_appPort, nextToSendTo);
   }
 }
 
@@ -481,29 +477,24 @@ void PennChord::Leave() {
   m_leaveFn(currIP, "");
   // message to pred contain's current node's successor 
   inRing = false;
-  Ptr<Packet> packetP = Create<Packet>();
+
   PennChordMessage leaveP = PennChordMessage(PennChordMessage::MessageType::LEAVE_P);
   leaveP.SetLeaveP(successorNumber);
-  packetP->AddHeader(leaveP);
-  m_socket->SendTo (packetP, 0 , InetSocketAddress (predecessorIP, m_appPort));
+  sendTo(leaveP, m_appPort, predecessorIP);
 
   // message to successor contain's current node's pred 
-  Ptr<Packet> packetS = Create<Packet>();
   PennChordMessage leaveS = PennChordMessage(PennChordMessage::MessageType::LEAVE_S);
   leaveS.SetLeaveS(predecessorNumber);
-  packetS->AddHeader(leaveS);
-  m_socket->SendTo (packetS, 0 , InetSocketAddress (successorIP, m_appPort));
+  sendTo(leaveS, m_appPort, successorIP);
 }
 
 // Called when a RINGSTATE command is issued
 void PennChord::RingState() {
   // Send out a message to successor
-  Ptr<Packet> packet = Create<Packet>();
   PennChordMessage ringStateMsg = PennChordMessage(PennChordMessage::MessageType::RING_STATE);
   ringStateMsg.SetRingState(currNumber);
-  packet->AddHeader(ringStateMsg);
   // PRINT_LOG("Sending to " << successorIP << " Node = " << successorNumber);
-  m_socket->SendTo (packet, 0, InetSocketAddress (successorIP, m_appPort));
+  sendTo(ringStateMsg, m_appPort, successorIP);
 }
 
 void PennChord::ProcessRingState(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
@@ -519,12 +510,10 @@ void PennChord::ProcessRingState(PennChordMessage message, Ipv4Address sourceAdd
   // }
   // If not originator, send RING_STATE message to successor
   if (currNumber != message.GetRingState().ringStateMessage) {
-    Ptr<Packet> packet = Create<Packet>();
     PennChordMessage ringStateMsg = PennChordMessage(PennChordMessage::MessageType::RING_STATE);
     ringStateMsg.SetRingState(message.GetRingState().ringStateMessage);
-    packet->AddHeader(ringStateMsg);
     // PRINT_LOG("Sending to " << successorIP << " Node = " << successorNumber);
-    m_socket->SendTo (packet, 0, InetSocketAddress (successorIP, m_appPort));
+    sendTo(ringStateMsg, m_appPort, successorIP);
   } else {
     // If originator, print End of Ring State message
     PRINT_LOG("End of Ring State");
