@@ -34,6 +34,11 @@ class Ipv4Address {
             return std::to_string(byte1) + "." + std::to_string(byte2) + "." + std::to_string(byte3) + "." + std::to_string(byte4); 
         }
 
+        std::ostream& operator<< (std::ostream& os) {
+            os << Ipv4ToString();
+            return os;
+        }
+
     private:
         uint8_t byte1, byte2, byte3, byte4;
 
