@@ -48,9 +48,10 @@ class PennChord : public PennApplication
 {
   public:
     typedef void (*Callback) (Ipv4Address, std::string);
-    
+
     PennChord ();
     virtual ~PennChord ();
+    void StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId);
 
     void RecvMessage (Ptr<Socket> socket);
     void ProcessPingReq (PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
@@ -58,10 +59,10 @@ class PennChord : public PennApplication
     void StopChord ();
 
     // Callback with Application Layer (add more when required)
-    void SetPublishCallback (Callback <void, Ipv4Address, std::string> publishFn);
-    void SetSearchCallback (Callback <void, Ipv4Address, std::string> searchFn);
-    void SetLeaveCallback (Callback <void, Ipv4Address, std::string> leaveFn);
-    void SetRehashKeysCallback (Callback <void, Ipv4Address, std::string> rehashKeysFn);
+    void SetPublishCallback (Callback publishFn);
+    void SetSearchCallback (Callback searchFn);
+    void SetLeaveCallback (Callback leaveFn);
+    void SetRehashKeysCallback (Callback rehashKeysFn);
 
     // From PennApplication
     virtual void ProcessCommand (std::vector<std::string> tokens);
@@ -80,7 +81,6 @@ class PennChord : public PennApplication
 
     
   private:
-    virtual void StartApplication (void);
     virtual void StopApplication (void);
 
     //Commands

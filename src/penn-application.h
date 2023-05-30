@@ -29,6 +29,7 @@ class PennApplication : public PennLog
 public:
   PennApplication ();
   virtual ~PennApplication ();
+  virtual void StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId) = 0;
 
   // Interface for PennApplication(s)
   virtual void ProcessCommand (std::vector<std::string> tokens) = 0;
@@ -45,7 +46,6 @@ protected:
   std::map<uint32_t, Ipv4Address> m_nodeAddressMap;
   std::map<Ipv4Address, uint32_t> m_addressNodeMap;
 private:
-  virtual void StartApplication (void) = 0;
   virtual void StopApplication (void) = 0;
 };
 

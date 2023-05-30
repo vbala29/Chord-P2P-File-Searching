@@ -41,7 +41,7 @@ PennChord::~PennChord ()
 }
 
 void
-PennChord::StartApplication (void)
+PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId)
 {
   std::cout << "PennChord::StartApplication()!!!!!" << std::endl;
   std::cout << "Node: " << g_nodeId << ", Hash: " << PennKeyHelper::KeyToHexString(PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(g_nodeId))))) << std::endl;
