@@ -4,6 +4,7 @@
  * Copyright © 2023 Vikram Bala
  */
 
+#pragma once
 
 #include <pthread.h>
 #include <cstdio>

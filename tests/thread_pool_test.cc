@@ -10,9 +10,10 @@ void chordFunction(ChordJob cj, void* args) {
 void tp_test() {
     fprintf(stderr, "Beginning Thread Pool Test \n--------------------------------- \n");
     ThreadPool<ChordJob>::workerFunction wf = chordFunction;
-    ThreadPool<ChordJob> tp(5, wf);
+    ThreadPool<ChordJob> tp(10, wf);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 200; i++) {
+        if (i % 20 == 0) usleep(20000);
         ChordJob cj = {i};
         tp.add_job(cj);
     }
