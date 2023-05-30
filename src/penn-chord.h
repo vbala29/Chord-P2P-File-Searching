@@ -39,6 +39,8 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <iostream>
+#include <string>
 
 #define HASHED_FIELD "0"
 #define NOT_HASHED_FIELD "1"

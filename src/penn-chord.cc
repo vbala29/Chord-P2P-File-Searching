@@ -30,7 +30,6 @@
 using namespace ns3;
 
 PennChord::PennChord ()
-    :
 {
 
 }
@@ -425,7 +424,7 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
 
      // DEBUG statement should only print for lookup requests, not while fixing fingers 
      if(pennSearchRequest || pennPublishRequest) {
-      CHORD_LOG("LookupRequest<" << std::to_string(currHash) << ">: NextHop<" << closestFingerString << ", " << PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(closestFingerString)))) << ", " << std::to_string(hashOfNode) << ">");
+      CHORD_LOG("LookupRequest<" << std::to_string(currHash) << ">: NextHop<" << closestFingerString << ", " << PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(closestFingerString))), m_addressNodeMap) << ", " << std::to_string(hashOfNode) << ">");
      }
     
     sendTo(findPredReq, m_appPort, nextToSendTo);

@@ -30,16 +30,25 @@ class Ipv4Address {
             return Ipv4Address(0);
         }
 
-        std::string Ipv4ToString() {
+        inline std::string Ipv4ToString() const {
             return std::to_string(byte1) + "." + std::to_string(byte2) + "." + std::to_string(byte3) + "." + std::to_string(byte4); 
         }
 
-        std::ostream& operator<< (std::ostream& os) {
-            os << Ipv4ToString();
-            return os;
-        }
 
     private:
         uint8_t byte1, byte2, byte3, byte4;
 
 };
+
+/**
+ * @brief Operator overload for Ipv4Address
+ * 
+ * @param os 
+ * @param ip 
+ * @return std::ostream& 
+ */
+ std::ostream& operator<< (std::ostream& os, const Ipv4Address& ip) {
+            std::string s = ip.Ipv4ToString();
+            os << s;
+            return os;
+  }
