@@ -39,7 +39,38 @@ PennChord::~PennChord ()
 
 }
 
-void
+//These aren't class methods as it makes it easier to use with pthread library if they're not.
+void* StabilizeThread(void* args) {
+  while (true) {
+    sleep(1); //1000ms
+    static_cast<PennChord*>(args)->Stabilize();
+  }
+  return NULL;
+}
+
+void* FixFingersThread(void* args) {
+  while (true) {
+    usleep(100000); //100ms
+    static_cast<PennChord*>(args)->FixFingers();
+  }
+  return NULL;
+}
+
+void* CommandLineThread(void* args) {
+  while (true) {
+    static_cast<PennChord*>(args)->ProcessCommand(tokens);
+  }
+  return NULL;
+}
+
+void* ReceiveThread(void* args) {
+  while (true) {
+    static_cast<PennChord*>(args)->Receive();
+  }
+  return NULL;
+}
+
+std::map<std::string, pthread_t> 
 PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId)
 {
   SetNodeAddressMap(m_nodeAddressMap);
@@ -50,26 +81,32 @@ PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, s
 
   std::cout << "PennChord::StartApplication()!!!!!" << std::endl;
   std::cout << "Node: " << g_nodeId << ", Hash: " << PennKeyHelper::KeyToHexString(PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(g_nodeId))), m_addressNodeMap)) << std::endl;
-  
-  // Configure timers
-  m_stabilizeTimer.SetFunction (&PennChord::Stabilize, this);
-  m_fixFingersTimer.SetFunction (&PennChord::FixFingers, this);
-  // Start timers
-  
-  std::string m_stabilizeTimeout {"1000ms"};
-  std::string m_fixFingersTimeout {"100ms"};
-  m_stabilizeTimer.SetDelay(Time(m_stabilizeTimeout));
-  m_fixFingersTimer.SetDelay(Time(m_fixFingersTimeout));
-  m_stabilizeTimer.Schedule ();
-  m_fixFingersTimer.Schedule();
 
+  std::map<std::string, pthread_t> threadMap;
+
+  //Stabilize Periodic Thread
+  pthread_t stabilize_thread;
+  pthread_create(&stabilize_thread, NULL, StabilizeThread, this);
+  threadMap.insert({"stabilize_thread", stabilize_thread});
+
+  //Fix fingers periodic thread
+  pthread_t fix_fingers_thread;
+  pthread_create(&fix_fingers_thread, NULL, FixFingersThread, this);
+  threadMap.insert({"fix_fingers_thread", fix_fingers_thread});
+
+  pthread_t command_line_thread;
+  pthread_create(&command_line_thread, NULL, CommandLineThread, this);
+  threadMap.insert({"command_line_thread", command_line_thread});
+
+  pthread_t receive_thread;
+  pthread_create(&receive_thread, NULL, ReceiveThread, this);
+  threadMap.insert({"receive_thread", receive_thread});
+
+  return threadMap;
 }
 
 void
-PennChord::StopApplication (void)
-{
-
-}
+PennChord::StopApplication (void) {};
 
 void
 PennChord::ProcessCommand (std::vector<std::string> tokens)
@@ -449,7 +486,7 @@ std::string PennChord::getPredecessorNode() {
   return predecessorNumber;
 }
 
-// If you are receiving this message, your successer left the ring -- update successor accordingly (you should receive your new successor in the message)
+// If you are receiving this message, your successor left the ring -- update successor accordingly (you should receive your new successor in the message)
 void PennChord::ProcessLeaveP(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
   std::string fromNode = ReverseLookup (sourceAddress);
   std::string newSuccessorNum = message.GetLeaveP().leavePMessage;

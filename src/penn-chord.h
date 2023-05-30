@@ -41,6 +41,7 @@
 #include <array>
 #include <iostream>
 #include <string>
+#include <pthread.h>
 
 #define HASHED_FIELD "0"
 #define NOT_HASHED_FIELD "1"
@@ -56,7 +57,7 @@ class PennChord : public PennApplication
 
     PennChord ();
     virtual ~PennChord ();
-    void StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId);
+    std::map<std::string, pthread_t> StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId);
 
     void RecvMessage (Ptr<Socket> socket);
     void ProcessPingReq (PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
@@ -107,6 +108,9 @@ class PennChord : public PennApplication
     void ProcessNotify(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessStabilizeRsp(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessStabilizeReq(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
+
+    friend void* StabilizeThread(void* args);
+    friend void* FixFingersThread(void* args);
 
     // Finger Table Method
     std::string ClosestPrecedingNode(uint32_t id);

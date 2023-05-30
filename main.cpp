@@ -3,6 +3,7 @@
 
 #include "src/penn-chord.h"
 #include <string>
+#include <pthread.h>
 #include <map>
 
 // First arg is Ipv4 of this node, 2nd arg is its node Id
@@ -28,5 +29,10 @@ int main(int argc, char** argv) {
         {Ipv4Address(127, 0, 0, 4), 4},
     };
 
-    pc.StartApplication(m_nodeAddressMap, m_addressNodeMap, Ipv4Address(std::stoi(argv[1])), argv[2]);
+    std::map<std::string, pthread_t> threadMap = pc.StartApplication(m_nodeAddressMap, m_addressNodeMap, Ipv4Address(std::stoi(argv[1])), argv[2]);
+
+    for (std::pair<std::string, pthread_t> p: threadMap) {
+        pthread_cancel(p.second);
+    }
+
 }
