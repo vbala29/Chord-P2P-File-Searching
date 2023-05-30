@@ -33,7 +33,7 @@ PennChordMessage::~PennChordMessage ()
 {
 }
 
-PennChordMessage::PennChordMessage (PennChordMessage::MessageType messageType, uint32_t transactionId)
+PennChordMessage::PennChordMessage (PennChordMessage::MessageType messageType)
 {
   m_messageType = messageType;
 }

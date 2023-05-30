@@ -15,17 +15,17 @@ int main(int argc, char** argv) {
     PennChord pc{};
 
     std::map<uint32_t, Ipv4Address> m_nodeAddressMap = {
-        {1, Ipv4Address(1)},
-        {2, Ipv4Address(2)},
-        {3, Ipv4Address(3)},
-        {4, Ipv4Address(4)},
+        {1, Ipv4Address(127, 0, 0, 1)},
+        {2, Ipv4Address(127, 0, 0, 2)},
+        {3, Ipv4Address(127, 0, 0, 3)},
+        {4, Ipv4Address(127, 0, 0, 4)},
     };
 
     std::map<Ipv4Address, uint32_t> m_addressNodeMap = {
-        {Ipv4Address(1), 1},
-        {Ipv4Address(2), 2},
-        {Ipv4Address(3), 3},
-        {Ipv4Address(4), 4},
+        {Ipv4Address(127, 0, 0, 1), 1},
+        {Ipv4Address(127, 0, 0, 2), 2},
+        {Ipv4Address(127, 0, 0, 3), 3},
+        {Ipv4Address(127, 0, 0, 4), 4},
     };
 
     pc.StartApplication(m_nodeAddressMap, m_addressNodeMap, Ipv4Address(std::stoi(argv[1])), argv[2]);

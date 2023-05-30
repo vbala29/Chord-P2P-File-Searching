@@ -51,7 +51,7 @@ class PennChordMessage
 
     };
 
-    PennChordMessage (PennChordMessage::MessageType messageType, uint32_t transactionId);
+    PennChordMessage (PennChordMessage::MessageType messageType);
 
     /**
     *  \brief Sets message type

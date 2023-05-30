@@ -35,7 +35,7 @@
 #include <set>
 #include <vector>
 #include <string>
-
+#include <array>
 
 #define HASHED_FIELD "0"
 #define NOT_HASHED_FIELD "1"
@@ -125,18 +125,13 @@ class PennChord : public PennApplication
     bool inRing = false;
     bool isSingleton = false; //Ring only has one node
 
-
-    Ptr<Socket> m_socket;
-    Time m_pingTimeout;
     uint16_t m_appPort;
     
     // Timers
     Timer m_stabilizeTimer;
     Timer m_fixFingersTimer;
-    // Ping tracker
-    std::map<uint32_t, Ptr<PingRequest> > m_pingTracker;
+    
     // Callbacks
-
     Callback m_pingSuccessFn;
     Callback m_pingFailureFn;
     Callback m_pingRecvFn;
@@ -147,6 +142,7 @@ class PennChord : public PennApplication
 
     // Finger Table
     std::array<std::string, 32> m_fingerTable; //stores node numbers not hash numbers
+    
 
 
 };

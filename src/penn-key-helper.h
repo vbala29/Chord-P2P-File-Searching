@@ -18,7 +18,7 @@
 #define PENN_KEY_HELPER_H
 
 #include "ipv4.hpp"
-
+#include <map>
 #include <string>
 #include <ios>
 #include <iomanip>
@@ -50,10 +50,10 @@ public:
      * @param ip
      * @return uint32_t
      */
-    static uint32_t CreateShaKey(const Ipv4Address &ip)
+    static uint32_t CreateShaKey(const Ipv4Address &ip, std::map<Ipv4Address, uint32_t> m_addressNodeMap)
     {
         std::stringstream ss;
-        ss << ip;
+        ss << m_addressNodeMap.at(ip);
         return CreateShaKey(ss.str());
     }
 

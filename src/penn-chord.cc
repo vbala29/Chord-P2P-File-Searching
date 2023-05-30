@@ -43,8 +43,14 @@ PennChord::~PennChord ()
 void
 PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId)
 {
+  SetNodeAddressMap(m_nodeAddressMap);
+  SetAddressNodeMap(m_addressNodeMap);
+  SetLocalAddress(m_local);
+  g_nodeId = nodeId;
+  m_appPort = 3000;
+
   std::cout << "PennChord::StartApplication()!!!!!" << std::endl;
-  std::cout << "Node: " << g_nodeId << ", Hash: " << PennKeyHelper::KeyToHexString(PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(g_nodeId))))) << std::endl;
+  std::cout << "Node: " << g_nodeId << ", Hash: " << PennKeyHelper::KeyToHexString(PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(g_nodeId))), m_addressNodeMap)) << std::endl;
   
   // Configure timers
   m_stabilizeTimer.SetFunction (&PennChord::Stabilize, this);
@@ -100,7 +106,7 @@ void PennChord::CreateRing(std::string& currNum) {
   if (DEBUG) fprintf(stderr, "\n Created Ring \n");
 
   currNumber = currNum;
-  currHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(currNum))));
+  currHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(currNum))), m_addressNodeMap);
   currIP = m_nodeAddressMap.at(std::stoi(currNumber));
   
   successorNumber = currNumber;
@@ -126,7 +132,7 @@ void PennChord::Join(std::string& nodeContained, std::string& currNum) {
   predecessorHash = -1;
 
   currNumber = currNum;
-  currHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(currNum))));
+  currHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(currNum))), m_addressNodeMap);
   currIP = m_nodeAddressMap.at(std::stoi(currNumber));
 
   successorNumber = "-1";
@@ -140,7 +146,7 @@ void PennChord::Join(std::string& nodeContained, std::string& currNum) {
 
   tryingToJoin = true;
   Ptr<Packet> packet = Create<Packet>();
-  PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ, GetNextTransactionId());
+  PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
   findPredReq.SetFindPredReq(currNumber + "," + currNumber + "," + NOT_HASHED_FIELD);
   packet->AddHeader(findPredReq);
   m_socket->SendTo (packet, 0, InetSocketAddress (m_nodeAddressMap.at(std::stoi(nodeContained)), m_appPort));
@@ -163,7 +169,7 @@ void PennChord::FixFingers() {
 void PennChord::FindSuccessor(uint32_t hashOfNode) {
   fixingFingers = true;
   Ptr<Packet> packet = Create<Packet>();
-  PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ, GetNextTransactionId());
+  PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
   findPredReq.SetFindPredReq(currNumber + "," + std::to_string(hashOfNode) + "," + HASHED_FIELD); //0 because we are giving it the hashed value
   packet->AddHeader(findPredReq);
 
@@ -181,7 +187,7 @@ void PennChord::Stabilize() {
     // FIND PRED REQUEST FOR YOUR SUCCESSOR'S PRED
     tryingToJoin = false;
     Ptr<Packet> packet = Create<Packet>();
-    PennChordMessage stabilizeReq = PennChordMessage(PennChordMessage::MessageType::STABILIZE_REQ, GetNextTransactionId());
+    PennChordMessage stabilizeReq = PennChordMessage(PennChordMessage::MessageType::STABILIZE_REQ);
     stabilizeReq.SetStabilizeReq("");
     packet->AddHeader(stabilizeReq);
     m_socket->SendTo (packet, 0, InetSocketAddress (successorIP, m_appPort));
@@ -195,7 +201,7 @@ void PennChord::ProcessStabilizeReq(PennChordMessage message, Ipv4Address source
   std::string stabilizeMessage = message.GetStabilizeReq().stabilizeMessage;
   if (DEBUG) CHORD_LOG ("Received STABILIZE_REQ, From Node: " << fromNode << ", Message: " << stabilizeMessage);
   Ptr<Packet> packet = Create<Packet>();
-  PennChordMessage stabilizeRsp = PennChordMessage(PennChordMessage::MessageType::STABILIZE_RSP, GetNextTransactionId());
+  PennChordMessage stabilizeRsp = PennChordMessage(PennChordMessage::MessageType::STABILIZE_RSP);
   stabilizeRsp.SetStabilizeRsp(predecessorNumber);
   packet->AddHeader(stabilizeRsp);
   m_socket->SendTo (packet, 0, InetSocketAddress (sourceAddress, m_appPort));
@@ -209,7 +215,7 @@ void PennChord::ProcessStabilizeRsp(PennChordMessage message, Ipv4Address source
 
   std::string msg = message.GetStabilizeRsp().stabilizeMessage;
   int successor_predecessor_num = std::stoi(msg);
-  uint32_t suc_pred_hash = (successor_predecessor_num == -1) ? 0 : PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(successor_predecessor_num)));
+  uint32_t suc_pred_hash = (successor_predecessor_num == -1) ? 0 : PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(successor_predecessor_num)), m_addressNodeMap);
 
   if ((successor_predecessor_num != -1) && ((successorHash > currHash && suc_pred_hash > currHash && suc_pred_hash < successorHash) || (successorHash < currHash && (suc_pred_hash > currHash || suc_pred_hash < successorHash)))) {
     successorNumber = msg;
@@ -226,7 +232,7 @@ void PennChord::Notify() {
   haveNotifiedOnce = true;
 
   Ptr<Packet> packet = Create<Packet>();
-  PennChordMessage notify = PennChordMessage(PennChordMessage::MessageType::NOTIFY, GetNextTransactionId());
+  PennChordMessage notify = PennChordMessage(PennChordMessage::MessageType::NOTIFY);
   notify.SetNotify("");
   packet->AddHeader(notify);
   m_socket->SendTo (packet, 0, InetSocketAddress (successorIP, m_appPort));
@@ -235,7 +241,7 @@ void PennChord::Notify() {
 
 void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
   std::string fromNode = ReverseLookup(sourceAddress);
-  uint32_t fromNodeHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode))));
+  uint32_t fromNodeHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode))), m_addressNodeMap);
 
   if (DEBUG) fprintf(stderr, "\n Node %s sent notify to node %s \n", fromNode.c_str(), g_nodeId.c_str());
   bool inRange = (currHash > predecessorHash && fromNodeHash > predecessorHash && fromNodeHash < currHash) || (currHash < predecessorHash && (fromNodeHash > predecessorHash || fromNodeHash < currHash));
@@ -263,7 +269,7 @@ void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddres
 void PennChord::Lookup(uint32_t id_hash) {
     CHORD_LOG("LookupIssue<" << std::to_string(currHash) << ", " << std::to_string(id_hash) << ">");
     Ptr<Packet> packet = Create<Packet>();
-    PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ, GetNextTransactionId());
+    PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
     findPredReq.SetFindPredReq(currNumber + "," + std::to_string(id_hash) + "," + HASHED_FIELD + "," + (makingSearchQuery ? SEARCH_QUERY : PUBLISH_QUERY) + ",0"); //The 0 if for the initial hop count size.
     packet->AddHeader(findPredReq);
     std::string closestNodeString = ClosestPrecedingNode(id_hash);
@@ -312,7 +318,7 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
   } else if (tryingToJoin) {
     successorNumber = v.at(1); //The successor of the predecessor is the successor of our node now.
     successorIP = m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(successorNumber))); 
-    successorHash = PennKeyHelper::CreateShaKey(successorIP);
+    successorHash = PennKeyHelper::CreateShaKey(successorIP, m_addressNodeMap);
    if (DEBUG) fprintf(stderr, "\n Node %s received tryingToJoin response with successor as %s \n", g_nodeId.c_str(), successorNumber.c_str());
 
     tryingToJoin = false; 
@@ -360,14 +366,14 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
 
 
   int requesterNode = std::stoi(v.at(0));
-  uint32_t hashOfNode = strcmp(v.at(2).c_str(), NOT_HASHED_FIELD) == 0 ? PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(v.at(1))))) : static_cast<uint32_t>(std::stoul(v.at(1))); //
+  uint32_t hashOfNode = strcmp(v.at(2).c_str(), NOT_HASHED_FIELD) == 0 ? PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(v.at(1)))), m_addressNodeMap) : static_cast<uint32_t>(std::stoul(v.at(1))); //
   
   if (DEBUG) fprintf(stderr, "\tSuccHash: %u, CurrHash: %u, targHash: %u\n", successorHash, currHash, hashOfNode);
 
   // you're at the final node (send response back to original requester)
   if (isSingleton || ((successorHash > currHash && hashOfNode > currHash && hashOfNode <= successorHash) || (successorHash <= currHash && (hashOfNode > currHash || hashOfNode <= successorHash)))) {
     Ptr<Packet> packet = Create<Packet>();
-    PennChordMessage findPredRsp = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_RSP, GetNextTransactionId());
+    PennChordMessage findPredRsp = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_RSP);
 
     std::string rsp = currNumber + "," + successorNumber + "," + predecessorNumber; 
     if (pennSearchRequest) {
@@ -375,13 +381,13 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
       rsp += "," + std::to_string(hashOfNode); //The original lookupQuery
       rsp += "," + std::to_string(std::stoi(v.at(4)) + 1); //The total hop count
       // LookupResult<currentNodeKey, targetKey, originatorNodeNum, originatorNodeKey>
-      CHORD_LOG("LookupResult<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ", " << fromNode  << ", " << PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode)))) << ">");
+      CHORD_LOG("LookupResult<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ", " << fromNode  << ", " << PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode))), m_addressNodeMap) << ">");
     } else if (pennPublishRequest) {
       rsp += "," + std::string(PUBLISH_QUERY); //Indicates to response parser that this is a PUBLISH_QUERY
       rsp += "," + std::to_string(hashOfNode); //The original lookupQuery
       rsp += "," + std::to_string(std::stoi(v.at(4)) + 1); //The total hop count
       // LookupResult<currentNodeKey, targetKey, originatorNodeNum, originatorNodeKey>
-      CHORD_LOG("LookupResult<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ", " << fromNode  << ", " << PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode)))) << ">");
+      CHORD_LOG("LookupResult<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ", " << fromNode  << ", " << PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode))), m_addressNodeMap) << ">");
     }
 
     findPredRsp.SetFindPredRsp(rsp);
@@ -398,7 +404,7 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
   
 
     Ptr<Packet> packet = Create<Packet>();
-    PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ, GetNextTransactionId());
+    PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
 
     std::string msgString;
     if (pennPublishRequest || pennSearchRequest) {
@@ -450,7 +456,7 @@ std::string PennChord::getPredecessorNode() {
 void PennChord::ProcessLeaveP(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
   std::string fromNode = ReverseLookup (sourceAddress);
   std::string newSuccessorNum = message.GetLeaveP().leavePMessage;
-  uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newSuccessorNum))));
+  uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newSuccessorNum))), m_addressNodeMap);
   successorNumber = newSuccessorNum;
   successorHash = hashOfNode;
   successorIP = m_nodeAddressMap.at(std::stoi(successorNumber)); 
@@ -460,7 +466,7 @@ void PennChord::ProcessLeaveP(PennChordMessage message, Ipv4Address sourceAddres
 void PennChord::ProcessLeaveS(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
   std::string fromNode = ReverseLookup (sourceAddress);
   std::string newPredecessorNum = message.GetLeaveS().leaveSMessage;
-  uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newPredecessorNum))));
+  uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newPredecessorNum))), m_addressNodeMap);
   predecessorNumber = newPredecessorNum;
   predecessorHash = hashOfNode;
   predecessorIP = m_nodeAddressMap.at(std::stoi(predecessorNumber));
@@ -474,14 +480,14 @@ void PennChord::Leave() {
   // message to pred contain's current node's successor 
   inRing = false;
   Ptr<Packet> packetP = Create<Packet>();
-  PennChordMessage leaveP = PennChordMessage(PennChordMessage::MessageType::LEAVE_P, GetNextTransactionId());
+  PennChordMessage leaveP = PennChordMessage(PennChordMessage::MessageType::LEAVE_P);
   leaveP.SetLeaveP(successorNumber);
   packetP->AddHeader(leaveP);
   m_socket->SendTo (packetP, 0 , InetSocketAddress (predecessorIP, m_appPort));
 
   // message to successor contain's current node's pred 
   Ptr<Packet> packetS = Create<Packet>();
-  PennChordMessage leaveS = PennChordMessage(PennChordMessage::MessageType::LEAVE_S, GetNextTransactionId());
+  PennChordMessage leaveS = PennChordMessage(PennChordMessage::MessageType::LEAVE_S);
   leaveS.SetLeaveS(predecessorNumber);
   packetS->AddHeader(leaveS);
   m_socket->SendTo (packetS, 0 , InetSocketAddress (successorIP, m_appPort));
@@ -490,9 +496,8 @@ void PennChord::Leave() {
 // Called when a RINGSTATE command is issued
 void PennChord::RingState() {
   // Send out a message to successor
-  uint32_t transactionId = GetNextTransactionId ();
   Ptr<Packet> packet = Create<Packet>();
-  PennChordMessage ringStateMsg = PennChordMessage(PennChordMessage::MessageType::RING_STATE, transactionId);
+  PennChordMessage ringStateMsg = PennChordMessage(PennChordMessage::MessageType::RING_STATE);
   ringStateMsg.SetRingState(currNumber);
   packet->AddHeader(ringStateMsg);
   // PRINT_LOG("Sending to " << successorIP << " Node = " << successorNumber);
@@ -513,7 +518,7 @@ void PennChord::ProcessRingState(PennChordMessage message, Ipv4Address sourceAdd
   // If not originator, send RING_STATE message to successor
   if (currNumber != message.GetRingState().ringStateMessage) {
     Ptr<Packet> packet = Create<Packet>();
-    PennChordMessage ringStateMsg = PennChordMessage(PennChordMessage::MessageType::RING_STATE, m_currentTransactionId);
+    PennChordMessage ringStateMsg = PennChordMessage(PennChordMessage::MessageType::RING_STATE);
     ringStateMsg.SetRingState(message.GetRingState().ringStateMessage);
     packet->AddHeader(ringStateMsg);
     // PRINT_LOG("Sending to " << successorIP << " Node = " << successorNumber);
@@ -524,29 +529,6 @@ void PennChord::ProcessRingState(PennChordMessage message, Ipv4Address sourceAdd
   }
 }
 
-void
-PennChord::SendPing (Ipv4Address destAddress, std::string pingMessage)
-{
-  if (destAddress != Ipv4Address::GetAny ())
-    {
-      uint32_t transactionId = GetNextTransactionId ();
-      if (DEBUG) CHORD_LOG ("Sending PING_REQ to Node: " << ReverseLookup(destAddress) << " IP: " << destAddress << " Message: " << pingMessage << " transactionId: " << transactionId);
-      Ptr<PingRequest> pingRequest = Create<PingRequest> (transactionId, Simulator::Now(), destAddress, pingMessage);
-      // Add to ping-tracker
-      m_pingTracker.insert (std::make_pair (transactionId, pingRequest));
-      Ptr<Packet> packet = Create<Packet> ();
-      PennChordMessage message = PennChordMessage (PennChordMessage::PING_REQ, transactionId);
-      message.SetPingReq (pingMessage);
-      packet->AddHeader (message);
-      m_socket->SendTo (packet, 0 , InetSocketAddress (destAddress, m_appPort));
-      
-    }
-  else
-    {
-      // Report failure   
-      m_pingFailureFn (destAddress, pingMessage);
-    }
-}
 
 void
 PennChord::RecvMessage (Ptr<Socket> socket)
@@ -561,12 +543,6 @@ PennChord::RecvMessage (Ptr<Socket> socket)
 
   switch (message.GetMessageType ())
     {
-      case PennChordMessage::PING_REQ:
-        ProcessPingReq (message, sourceAddress, sourcePort);
-        break;
-      case PennChordMessage::PING_RSP:
-        ProcessPingRsp (message, sourceAddress, sourcePort);
-        break;
       case PennChordMessage::RING_STATE:
         ProcessRingState (message, sourceAddress, sourcePort);
         break;
@@ -606,7 +582,7 @@ std::string PennChord::ClosestPrecedingNode(uint32_t id) {
       continue;
     }
 
-    uint32_t f = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(m_fingerTable[i]))));
+    uint32_t f = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(m_fingerTable[i]))), m_addressNodeMap);
     uint32_t n = currHash;
 
 
@@ -620,42 +596,6 @@ std::string PennChord::ClosestPrecedingNode(uint32_t id) {
   // If no finger was the closest preceding finger, return 
   // the successor node as default behavior
   return (isSingleton ? currNumber : successorNumber);
-}
-
-void
-PennChord::ProcessPingReq (PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
-{
-    // Use reverse lookup for ease of debug
-    std::string fromNode = ReverseLookup (sourceAddress);
-    if (DEBUG) CHORD_LOG ("Received PING_REQ, From Node: " << fromNode << ", Message: " << message.GetPingReq().pingMessage);
-    // Send Ping Response
-    PennChordMessage resp = PennChordMessage (PennChordMessage::PING_RSP, message.GetTransactionId());
-    resp.SetPingRsp (message.GetPingReq().pingMessage);
-    Ptr<Packet> packet = Create<Packet> ();
-    packet->AddHeader (resp);
-    m_socket->SendTo (packet, 0 , InetSocketAddress (sourceAddress, sourcePort));
-    // Send indication to application layer
-    m_pingRecvFn (sourceAddress, message.GetPingReq().pingMessage);
-}
-
-void
-PennChord::ProcessPingRsp (PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
-{
-  // Remove from pingTracker
-  std::map<uint32_t, Ptr<PingRequest> >::iterator iter;
-  iter = m_pingTracker.find (message.GetTransactionId ());
-  if (iter != m_pingTracker.end ())
-    {
-      std::string fromNode = ReverseLookup (sourceAddress);
-      if (DEBUG) CHORD_LOG ("Received PING_RSP, From Node: " << fromNode << ", Message: " << message.GetPingRsp().pingMessage);
-      m_pingTracker.erase (iter);
-      // Send indication to application layer
-      m_pingSuccessFn (sourceAddress, message.GetPingRsp().pingMessage);
-    }
-  else
-    {
-      DEBUG_LOG ("Received invalid PING_RSP!");
-    }
 }
 
 
