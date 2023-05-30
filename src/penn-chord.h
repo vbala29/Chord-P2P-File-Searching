@@ -31,6 +31,12 @@
 #include "penn-application.h"
 #include "penn-chord-message.h"
 #include "penn-key-helper.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 #include <map>
 #include <set>
 #include <vector>

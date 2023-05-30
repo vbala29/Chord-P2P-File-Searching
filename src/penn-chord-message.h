@@ -77,7 +77,7 @@ class PennChordMessage
   public:
     void Print (std::ostream &os) const;
     uint32_t GetSerializedSize (void) const;
-    void Serialize (Buffer::Iterator start) const;
+    void Serialize (Buffer::Iterator& start) const;
     uint32_t Deserialize (Buffer::Iterator start);
 
     struct FindPredReq

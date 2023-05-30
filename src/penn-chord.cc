@@ -145,9 +145,43 @@ void PennChord::Join(std::string& nodeContained, std::string& currNum) {
   }
 
   tryingToJoin = true;
-  Ptr<Packet> packet = Create<Packet>();
+
+  int sockfd, portno, newsockfd;
+  struct sockaddr_in node_addr;
+
+  while(sockfd < 0) {
+    sockfd = socket(AF_INET, SOCK_STREAM, PF_INET);
+    if (sockfd < 0) {
+      perror("Error opening socket");
+    }
+  }
+
+  bzero((char*) &node_addr, sizeof(node_addr));
+  portno = m_appPort;
+
+  node_addr.sin_family = AF_INET; //Ipv4 protocol
+  inet_aton(m_nodeAddressMap.at(std::stoi(nodeContained)).Ipv4ToString().c_str(), &node_addr.sin_addr); 
+  node_addr.sin_port = htons(portno); //convert to network byte order
+  
+  while(connect(sockfd, (struct sockaddr *) &node_addr, sizeof(node_addr)) < 0) {
+    perror("Error on connecting");
+  }
+
   PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
   findPredReq.SetFindPredReq(currNumber + "," + currNumber + "," + NOT_HASHED_FIELD);
+
+  
+  Buffer b{};
+  Buffer::Iterator it = b.Begin();
+  findPredReq.Serialize(it);
+  uint8_t* buf = (uint8_t*) malloc(sizeof(uint8_t) * b.GetSerializedSize());
+  if (b.Serialize(buf, b.GetSerializedSize()) == 0) {
+    perror("Buffer not large enough");
+  }
+
+  send(sockfd, buf, (size_t) b.GetSerializedSize(), 0); 
+
+
   packet->AddHeader(findPredReq);
   m_socket->SendTo (packet, 0, InetSocketAddress (m_nodeAddressMap.at(std::stoi(nodeContained)), m_appPort));
 }

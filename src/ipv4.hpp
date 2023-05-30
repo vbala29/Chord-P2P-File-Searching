@@ -30,6 +30,10 @@ class Ipv4Address {
             return Ipv4Address(0);
         }
 
+        std::string Ipv4ToString() {
+            return std::to_string(byte1) + "." + std::to_string(byte2) + "." + std::to_string(byte3) + "." + std::to_string(byte4); 
+        }
+
     private:
         uint8_t byte1, byte2, byte3, byte4;
 

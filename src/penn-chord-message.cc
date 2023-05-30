@@ -116,7 +116,7 @@ PennChordMessage::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::Serialize (Buffer::Iterator start) const
+PennChordMessage::Serialize (Buffer::Iterator& start) const
 {
   Buffer::Iterator i = start;
   i.WriteU8 (m_messageType);
