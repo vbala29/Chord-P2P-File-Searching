@@ -79,7 +79,7 @@ void* CommandLineThread(void* args) {
 void* ReceiveThread(void* args) {
   int sockfd, newsockfd, portno;
   socklen_t clilen;
-  char buff[4096];
+  uint8_t buff[4096];
   struct sockaddr_in my_addr, cli_addr;
   int n;
 
@@ -117,9 +117,16 @@ void* ReceiveThread(void* args) {
       perror("Error on read() in ReceiveThread()");
       continue;
     }
-  
 
-    static_cast<PennChord*>(args)->Receive();
+    Buffer b{};
+    Buffer::Iterator it = b.Begin();
+    it.Write(buff, n);
+    PennChordMessage pcm;
+    pcm.Deserialize(it);
+
+
+    //Add in thread pool once this actually works
+    static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(cli_addr.sin_addr.s_addr));
   }
 
   return NULL;
@@ -138,11 +145,6 @@ PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, s
   SetLocalAddress(m_local);
   g_nodeId = nodeId;
   m_appPort = 3000;
-
-  if (sizeof(uint8_t) != sizeof(char)) {
-    perror("Size of uint8_t and char not the same, cannot run on this architecture.");
-    exit(1);
-  }
 
   std::cout << "PennChord::StartApplication()!!!!!" << std::endl;
   std::cout << "Node: " << g_nodeId << ", Hash: " << PennKeyHelper::KeyToHexString(PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(g_nodeId))), m_addressNodeMap)) << std::endl;
@@ -623,15 +625,9 @@ void PennChord::ProcessRingState(PennChordMessage message, Ipv4Address sourceAdd
 
 
 void
-PennChord::RecvMessage (Ptr<Socket> socket)
+PennChord::RecvMessage (PennChordMessage message, Ipv4Address sourceAddress)
 {
-  Address sourceAddr;
-  Ptr<Packet> packet = socket->RecvFrom (sourceAddr);
-  InetSocketAddress inetSocketAddr = InetSocketAddress::ConvertFrom (sourceAddr);
-  Ipv4Address sourceAddress = inetSocketAddr.GetIpv4 ();
-  uint16_t sourcePort = inetSocketAddr.GetPort ();
-  PennChordMessage message;
-  packet->RemoveHeader (message);
+  uint16_t sourcePort = m_appPort; //Not actually used by any of the methods below
 
   switch (message.GetMessageType ())
     {
