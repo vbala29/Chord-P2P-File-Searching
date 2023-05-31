@@ -29,10 +29,11 @@ int main(int argc, char** argv) {
         {Ipv4Address(127, 0, 0, 4), 4},
     };
 
-    std::map<std::string, pthread_t> threadMap = pc.StartApplication(m_nodeAddressMap, m_addressNodeMap, Ipv4Address(std::stoi(argv[1])), argv[2]);
+    pc.StartApplication(m_nodeAddressMap, m_addressNodeMap, Ipv4Address(std::stoi(argv[1])), argv[2]);
 
-    for (std::pair<std::string, pthread_t> p: threadMap) {
-        pthread_cancel(p.second);
-    }
+    while(1);
 
+    // for (std::pair<std::string, pthread_t> p: threadMap) {
+    //     pthread_cancel(p.second);
+    // }
 }

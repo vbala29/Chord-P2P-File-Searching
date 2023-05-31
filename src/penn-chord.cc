@@ -68,6 +68,10 @@ void* CommandLineThread(void* args) {
       std::getline(ss, substr, ' ');
       tokens.push_back(substr);
     }
+    
+    if (tokens.at(0) == "QUIT") {
+      exit(0); //End program
+    }
 
     std::cout << std::endl << "Please wait..." << std::endl << std::flush;
     static_cast<PennChord*>(args)->ProcessCommand(tokens);
@@ -123,7 +127,6 @@ void* ReceiveThread(void* args) {
     it.Write(buff, n);
     PennChordMessage pcm;
     pcm.Deserialize(it);
-
 
     //Add in thread pool once this actually works
     static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(cli_addr.sin_addr.s_addr));
@@ -260,7 +263,6 @@ void PennChord::Join(std::string& nodeContained, std::string& currNum) {
 void PennChord::FixFingers() {
 
   if (!inRing || isSingleton || !haveNotifiedOnce) {
-    m_fixFingersTimer.Schedule();
     return; //Ensures node fields are initialized before calling fix fingers code.
   }
 
@@ -298,7 +300,6 @@ void PennChord::Stabilize() {
     sendTo(stabilizeReq, m_appPort, successorIP);
   }
 
-  m_stabilizeTimer.Schedule();
 }
 
 void PennChord::ProcessStabilizeReq(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
@@ -437,7 +438,6 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
     if(nextFinger > 31) {
       nextFinger = 0;
     }
-    m_fixFingersTimer.Schedule();
     
   }
   
