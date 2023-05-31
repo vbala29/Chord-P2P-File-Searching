@@ -42,6 +42,7 @@
 #include <iostream>
 #include <string>
 #include <pthread.h>
+#include <sstream>
 
 #define HASHED_FIELD "0"
 #define NOT_HASHED_FIELD "1"
@@ -79,6 +80,7 @@ class PennChord : public PennApplication
     uint32_t getPredecessorHash();
     std::string getSuccessorNode();
     std::string getPredecessorNode();
+    int GetAppPort();
 
 
   bool makingSearchQuery = false;
@@ -134,11 +136,7 @@ class PennChord : public PennApplication
     bool inRing = false;
     bool isSingleton = false; //Ring only has one node
 
-    uint16_t m_appPort;
-    
-    // Timers
-    Timer m_stabilizeTimer;
-    Timer m_fixFingersTimer;
+    int m_appPort;
     
     // Callbacks
     Callback m_pingSuccessFn;

@@ -58,16 +58,76 @@ void* FixFingersThread(void* args) {
 
 void* CommandLineThread(void* args) {
   while (true) {
+    std::string s;
+    std::cin >> s;
+    std::stringstream ss {s};
+    std::vector<std::string> tokens;
+
+    while(ss.good()) {
+      std::string substr;
+      std::getline(ss, substr, ' ');
+      tokens.push_back(substr);
+    }
+
+    std::cout << std::endl << "Please wait..." << std::endl << std::flush;
     static_cast<PennChord*>(args)->ProcessCommand(tokens);
+    std::cout << "Command Executed" << std::endl << std::endl << std::flush;
   }
   return NULL;
 }
 
 void* ReceiveThread(void* args) {
-  while (true) {
+  int sockfd, newsockfd, portno;
+  socklen_t clilen;
+  char buff[4096];
+  struct sockaddr_in my_addr, cli_addr;
+  int n;
+
+
+  sockfd = socket(AF_INET, SOCK_STREAM, PF_INET);
+  while (sockfd < 0) {
+    perror("ERROR opening socket in ReceiveThread()");
+    sockfd = socket(AF_INET, SOCK_STREAM, PF_INET);
+  }
+
+  bzero((char *) &my_addr, sizeof(my_addr));
+  portno = static_cast<PennChord*>(args)->GetAppPort();
+
+  my_addr.sin_family = AF_INET;
+  my_addr.sin_addr.s_addr = INADDR_ANY; //monitor all interfaces (Aka IPs this host associated with)
+  my_addr.sin_port = htons(portno);
+
+  while (bind(sockfd, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
+    perror("ERROR on binding in ReceiveThread()");
+  }
+
+  listen(sockfd, 100); // Allow up to 100 pending TCP SYN connections 
+
+  while(true) {
+    clilen = sizeof(cli_addr);
+    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    if (newsockfd < 0) {
+      perror("ERROR on accept in ReceiveThread()");
+      continue;
+    }
+    
+    printf("established TCP connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+    n = read(newsockfd, buff, 4095);
+    if (n == -1) {
+      perror("Error on read() in ReceiveThread()");
+      continue;
+    }
+  
+
     static_cast<PennChord*>(args)->Receive();
   }
+
   return NULL;
+}
+
+int
+PennChord::GetAppPort() {
+  return m_appPort;
 }
 
 std::map<std::string, pthread_t> 
@@ -78,6 +138,11 @@ PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, s
   SetLocalAddress(m_local);
   g_nodeId = nodeId;
   m_appPort = 3000;
+
+  if (sizeof(uint8_t) != sizeof(char)) {
+    perror("Size of uint8_t and char not the same, cannot run on this architecture.");
+    exit(1);
+  }
 
   std::cout << "PennChord::StartApplication()!!!!!" << std::endl;
   std::cout << "Node: " << g_nodeId << ", Hash: " << PennKeyHelper::KeyToHexString(PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(g_nodeId))), m_addressNodeMap)) << std::endl;
