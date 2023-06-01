@@ -10,20 +10,28 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
     int sockfd, portno;
     struct sockaddr_in node_addr;
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0); //internetwork, TCP/IP, IPv4
+    sockfd = socket(AF_INET, SOCK_STREAM, 0); //internetwork, TCP/IP, default protocol
     if (sockfd < 0) {
         perror("Error opening socket");
         exit(1);
     }
 
 
+
     bzero((char*) &node_addr, sizeof(node_addr));
     portno = port;
 
-    node_addr.sin_family = AF_INET; //Ipv4 protocol
-    inet_aton(ip.Ipv4ToString().c_str(), &node_addr.sin_addr); 
+    node_addr.sin_family = AF_INET; //TCP protocol
     node_addr.sin_port = htons(portno); //convert to network byte order
-    std::cout << "JHEREWEEE: " << ip.Ipv4ToString() << std::flush;
+
+    std::cout << "0JHEREWEEE: " << ip.Ipv4ToString() << std::flush;
+
+    if (inet_pton(AF_INET, ip.Ipv4ToString().c_str(), &node_addr.sin_addr) <= 0) {
+        perror("invalid address/adress not supported");
+        exit(1);
+    }
+
+    std::cout << "JHEREWEEE: " << std::flush;
 
     if (connect(sockfd, (struct sockaddr *) &node_addr, sizeof(node_addr)) < 0) {
         std::cout << "Sockfd: " << sockfd << std::endl;

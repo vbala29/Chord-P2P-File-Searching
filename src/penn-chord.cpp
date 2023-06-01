@@ -95,6 +95,15 @@ void* ReceiveThread(void* args) {
     exit(1);
   }
 
+  int opt = 1;
+  // Forcefully attaching socket to the port
+  if (setsockopt(sockfd, SOL_SOCKET,
+                  SO_REUSEADDR, &opt,
+                  sizeof(opt))) {
+      perror("setsockopt");
+      exit(1);
+  }
+
   bzero((char *) &my_addr, sizeof(my_addr));
   portno = static_cast<PennChord*>(args)->GetAppPort();
 
@@ -107,7 +116,10 @@ void* ReceiveThread(void* args) {
     exit(1);
   }
 
-  listen(sockfd, 100); // Allow up to 100 pending TCP SYN connections 
+  if (listen(sockfd, 100) < 0) { // Allow up to 100 pending TCP SYN connections 
+    perror("Error on listen()");
+    exit(1);
+  } 
 
   while(true) {
     clilen = sizeof(cli_addr);
@@ -118,7 +130,7 @@ void* ReceiveThread(void* args) {
       continue;
     }
     
-    printf("established TCP connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+    fprintf(stderr, "established TCP connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
     n = read(newsockfd, buff, 4095);
     if (n == -1) {
       perror("Error on read() in ReceiveThread()");
