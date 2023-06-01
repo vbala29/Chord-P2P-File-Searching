@@ -3,7 +3,9 @@
  * Contact: vikrambala2002@gmail.com
  * Copyright © 2023 Vikram Bala
  */
-#pragma once
+
+#ifndef TRANSMIT_H
+#define TRANSMIT_H
 
 #include "penn-chord-message.h"
 #include "ipv4.hpp"
@@ -15,3 +17,5 @@
 #include <unistd.h>
 
 void sendTo(PennChordMessage message, int port, Ipv4Address ip);
+
+#endif

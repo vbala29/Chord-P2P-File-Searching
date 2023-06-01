@@ -21,6 +21,7 @@
 
 #include <map>
 #include <sstream>
+#include <vector>
 #include <pthread.h>
 #include "penn-log.h"
 #include "ipv4.hpp"

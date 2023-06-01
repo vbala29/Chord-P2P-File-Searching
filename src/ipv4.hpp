@@ -4,8 +4,12 @@
  * Copyright © 2023 Vikram Bala
  */
 
-#pragma once
+
+#ifndef IPV4_H
+#define IPV4_H
+
 #include <stdint.h>
+#include <string>
 
 
 class Ipv4Address {
@@ -34,6 +38,26 @@ class Ipv4Address {
             return std::to_string(byte1) + "." + std::to_string(byte2) + "." + std::to_string(byte3) + "." + std::to_string(byte4); 
         }
 
+        //For maps used in penn-chord
+        bool operator<(const Ipv4Address& other) const {
+            if (this->byte1 < other.byte1) {
+                return true;
+            } else if (this->byte1 == other.byte1) {
+                if (this->byte2 < other.byte2) {
+                    return true;
+                } else if (this->byte2 == other.byte2) {
+                    if (this->byte3 < other.byte3) {
+                        return true;
+                    } else if (this->byte3 == other.byte3) {
+                        if (this->byte4 < other.byte4) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
 
     private:
         uint8_t byte1, byte2, byte3, byte4;
@@ -47,8 +71,10 @@ class Ipv4Address {
  * @param ip 
  * @return std::ostream& 
  */
- std::ostream& operator<< (std::ostream& os, const Ipv4Address& ip) {
+ inline std::ostream& operator<< (std::ostream& os, const Ipv4Address& ip) {
             std::string s = ip.Ipv4ToString();
             os << s;
             return os;
-  }
+}
+
+#endif

@@ -41,7 +41,7 @@
   if (g_chordVerbose)                                               \
     {                                                               \
       std::cout << "\n*CHORD* Node: " << g_nodeId                   \
-                << ", Module: " << g_moduleName                      \ 
+                << ", Module: " << g_moduleName                      \
                 << " ms, Message: " << msg << "\n";                   \
     }     
 
@@ -49,7 +49,7 @@
   if (g_searchVerbose)                                               \
     {                                                               \
       std::cout << "\n*SEARCH* Node: " << g_nodeId                   \
-                << ", Module: " << g_moduleName                      \ 
+                << ", Module: " << g_moduleName                      \
                 << " ms, Message: " << msg << "\n";                   \
     }     
 

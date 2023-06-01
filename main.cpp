@@ -1,10 +1,11 @@
 // #include "tests/thread_pool_test.hpp"
 // #include <cstdlib>
 
-#include "src/penn-chord.h"
 #include <string>
 #include <pthread.h>
 #include <map>
+#include "src/penn-chord.h"
+
 
 // First arg is Ipv4 of this node, 2nd arg is its node Id
 int main(int argc, char** argv) {
@@ -13,7 +14,7 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    PennChord pc{};
+    PennChord pc;
 
     std::map<uint32_t, Ipv4Address> m_nodeAddressMap = {
         {1, Ipv4Address(127, 0, 0, 1)},

@@ -129,7 +129,7 @@ void* ReceiveThread(void* args) {
     PennChordMessage pcm;
     pcm.Deserialize(it);
 
-    //Add in thread pool once this actually works
+    //Add in thread pool once this actually works TODO
     static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(cli_addr.sin_addr.s_addr));
   }
 
