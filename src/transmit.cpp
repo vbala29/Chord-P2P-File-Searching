@@ -24,14 +24,11 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
     node_addr.sin_family = AF_INET; //TCP protocol
     node_addr.sin_port = htons(portno); //convert to network byte order
 
-    std::cout << "0JHEREWEEE: " << ip.Ipv4ToString() << std::flush;
-
     if (inet_pton(AF_INET, ip.Ipv4ToString().c_str(), &node_addr.sin_addr) <= 0) {
         perror("invalid address/adress not supported");
         exit(1);
     }
 
-    std::cout << "JHEREWEEE: " << std::flush;
 
     if (connect(sockfd, (struct sockaddr *) &node_addr, sizeof(node_addr)) < 0) {
         std::cout << "Sockfd: " << sockfd << std::endl;
@@ -39,7 +36,6 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
         exit(1);
     }
     
-    std::cout << "1JHEREWEEE" << std::flush;
 
     Buffer b{};
     Buffer::Iterator it = b.Begin();
@@ -49,13 +45,15 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
         perror("Buffer not large enough");
     }
 
-    std::cout << "2JHEREWEEE" << std::flush;
+    std::cout << "Size of message txed: " << b.GetSerializedSize() << std::endl << std::flush;
+    for (int i = 0; i < b.GetSerializedSize(); i++) {
+        std::cout << buf[i] << ", ";
+    } 
+    std::cout << std::endl << std::flush;
  
     if (send(sockfd, buf, (size_t) b.GetSerializedSize(), 0) < 0) {
         perror("Error with send(2) call");
     } 
-
-    std::cout << "3JH123EREWEEE" << std::flush;
 
     free(buf);
     close(sockfd); //Close file descriptor/delete from per process table

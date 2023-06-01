@@ -140,6 +140,13 @@ void* ReceiveThread(void* args) {
     Buffer b{};
     Buffer::Iterator it = b.Begin();
     it.Write(buff, n);
+
+    std::cout << "Size of message rxed: " << n << std::endl << std::flush;
+    for (int i = 0; i < n; i++) {
+        std::cout << buff[i] << ", ";
+    } 
+    std::cout << std::endl << std::flush;
+
     PennChordMessage pcm;
     pcm.Deserialize(it);
 
@@ -718,6 +725,7 @@ void
 PennChord::RecvMessage (PennChordMessage message, Ipv4Address sourceAddress)
 {
   uint16_t sourcePort = m_appPort; //Not actually used by any of the methods below
+  std::cout << "In Recv(): " << message.GetMessageType() << std::endl << std::flush;
 
   switch (message.GetMessageType ())
     {
