@@ -6,7 +6,7 @@ PROG=chord
 #
 override CPPFLAGS += -DNDEBUG -DPROMPT=$(PROMPT)
 
-CC = clang++ -lpthread  -lssl -lcrypto -std=c++14
+CC = clang++ -lpthread -lssl -lcrypto -std=c++14
 
 CFLAGS = -Wall -Werror -g
 
@@ -27,15 +27,12 @@ OBJS = $(SRCS:.c=.o)
 
 chord : $(CHORD_OBJS) $(TP_OBJS) $(OBJS)
 	$(CC) -o $@ $^
-	mv $(CHORD_OBJS) ./bin
-	mv $(TP_OBJS) ./bin
-	mv $(OBJS) ./bin
 
 all : tp src chord
 
- 
 clean :
-	$(RM) $(TP_OBJS) $(TEST_OBJS) $(PROG) ./bin/*
+	$(RM) ./bin/*
+	rm -r chord
 
 
 # TEST_SRCS = $(wildcard ./tests/*.cpp)
