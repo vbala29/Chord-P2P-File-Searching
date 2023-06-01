@@ -90,9 +90,9 @@ void* ReceiveThread(void* args) {
 
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  while (sockfd < 0) {
+  if (sockfd < 0) {
     perror("ERROR opening socket in ReceiveThread()");
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    exit(1);
   }
 
   bzero((char *) &my_addr, sizeof(my_addr));
@@ -102,14 +102,16 @@ void* ReceiveThread(void* args) {
   my_addr.sin_addr.s_addr = INADDR_ANY; //monitor all interfaces (Aka IPs this host associated with)
   my_addr.sin_port = htons(portno);
 
-  while (bind(sockfd, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
+  if (bind(sockfd, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
     perror("ERROR on binding in ReceiveThread()");
+    exit(1);
   }
 
   listen(sockfd, 100); // Allow up to 100 pending TCP SYN connections 
 
   while(true) {
     clilen = sizeof(cli_addr);
+    std::cout << "Waiting to accept connection" << std::endl << std::flush;
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
     if (newsockfd < 0) {
       perror("ERROR on accept in ReceiveThread()");

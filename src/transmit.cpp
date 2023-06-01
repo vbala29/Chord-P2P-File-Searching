@@ -10,12 +10,12 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
     int sockfd, portno;
     struct sockaddr_in node_addr;
 
-    while(sockfd < 0) {
-        sockfd = socket(AF_INET, SOCK_STREAM, 0); //internetwork, TCP/IP, IPv4
-        if (sockfd < 0) {
-            perror("Error opening socket");
-        }
+    sockfd = socket(AF_INET, SOCK_STREAM, 0); //internetwork, TCP/IP, IPv4
+    if (sockfd < 0) {
+        perror("Error opening socket");
+        exit(1);
     }
+
 
     bzero((char*) &node_addr, sizeof(node_addr));
     portno = port;
@@ -23,10 +23,15 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
     node_addr.sin_family = AF_INET; //Ipv4 protocol
     inet_aton(ip.Ipv4ToString().c_str(), &node_addr.sin_addr); 
     node_addr.sin_port = htons(portno); //convert to network byte order
+    std::cout << "JHEREWEEE: " << ip.Ipv4ToString() << std::flush;
 
-    while(connect(sockfd, (struct sockaddr *) &node_addr, sizeof(node_addr)) < 0) {
+    if (connect(sockfd, (struct sockaddr *) &node_addr, sizeof(node_addr)) < 0) {
+        std::cout << "Sockfd: " << sockfd << std::endl;
         perror("Error on connecting");
+        exit(1);
     }
+    
+    std::cout << "1JHEREWEEE" << std::flush;
 
     Buffer b{};
     Buffer::Iterator it = b.Begin();
@@ -36,9 +41,13 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
         perror("Buffer not large enough");
     }
 
+    std::cout << "2JHEREWEEE" << std::flush;
+ 
     if (send(sockfd, buf, (size_t) b.GetSerializedSize(), 0) < 0) {
         perror("Error with send(2) call");
     } 
+
+    std::cout << "3JH123EREWEEE" << std::flush;
 
     free(buf);
     close(sockfd); //Close file descriptor/delete from per process table
