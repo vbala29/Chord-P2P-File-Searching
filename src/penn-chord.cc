@@ -23,6 +23,7 @@
  */
 
 #include "penn-chord.h"
+#include "../lib/thread_pool.hpp"
 
 
 #define DEBUG 0
@@ -152,6 +153,9 @@ PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, s
   std::cout << "PennChord::StartApplication()!!!!!" << std::endl;
   std::cout << "Node: " << g_nodeId << ", Hash: " << PennKeyHelper::KeyToHexString(PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(g_nodeId))), m_addressNodeMap)) << std::endl;
 
+  pthread_mutexattr_t lockAttr;
+  initMutexAndAttr(lock, lockAttr);
+
   std::map<std::string, pthread_t> threadMap;
 
   //Stabilize Periodic Thread
@@ -211,6 +215,8 @@ PennChord::ProcessCommand (std::vector<std::string> tokens)
 void PennChord::CreateRing(std::string& currNum) {
   if (DEBUG) fprintf(stderr, "\n Created Ring \n");
 
+  pthread_mutex_lock(&lock);
+
   currNumber = currNum;
   currHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(currNum))), m_addressNodeMap);
   currIP = m_nodeAddressMap.at(std::stoi(currNumber));
@@ -229,10 +235,14 @@ void PennChord::CreateRing(std::string& currNum) {
 
   inRing = true;
   isSingleton = true;
+
+  pthread_mutex_unlock(&lock);
 }
 
 void PennChord::Join(std::string& nodeContained, std::string& currNum) {
+  
   if (DEBUG) fprintf(stderr, "\n Node %s sent join request to node %s \n", currNum.c_str(), nodeContained.c_str());
+  pthread_mutex_lock(&lock);
 
   predecessorNumber = "-1";
   predecessorHash = -1;
@@ -255,18 +265,22 @@ void PennChord::Join(std::string& nodeContained, std::string& currNum) {
   PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
   findPredReq.SetFindPredReq(currNumber + "," + currNumber + "," + NOT_HASHED_FIELD);
 
+  pthread_mutex_unlock(&lock);
+
   sendTo(findPredReq, m_appPort, m_nodeAddressMap.at(std::stoi(nodeContained)));
 }
 
 
 
 void PennChord::FixFingers() {
-
+  pthread_mutex_lock(&lock);
   if (!inRing || isSingleton || !haveNotifiedOnce) {
     return; //Ensures node fields are initialized before calling fix fingers code.
   }
 
   fixingFingers = true;
+
+  pthread_mutex_unlock(&lock);
   
   FindSuccessor(currHash + pow(2, nextFinger));
 
@@ -274,6 +288,7 @@ void PennChord::FixFingers() {
 }
 
 void PennChord::FindSuccessor(uint32_t hashOfNode) {
+  pthread_mutex_lock(&lock);
   fixingFingers = true;
 
   PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
@@ -282,6 +297,8 @@ void PennChord::FindSuccessor(uint32_t hashOfNode) {
   std::string closest_finger = ClosestPrecedingNode(hashOfNode);
   uint32_t closest_finger_number = static_cast<uint32_t>(std::stoul(closest_finger));
 
+  pthread_mutex_unlock(&lock);
+
   sendTo(findPredReq, m_appPort, m_nodeAddressMap.at(closest_finger_number));
 }
 
@@ -289,26 +306,36 @@ void PennChord::Stabilize() {
   // (1) find your successor's pred, x
   // (2) if x is a better successor for you, make that your succ
   // (3) notify (new) successor
-
+  pthread_mutex_lock(&lock);
   if (inRing && successorNumber != currNumber && predecessorNumber != currNumber) { //Ring consists of more than one node and both nodes' fields are initialized 
     // FIND PRED REQUEST FOR YOUR SUCCESSOR'S PRED
     tryingToJoin = false;
+    Ipv4Address successorIPCopy = successorIP;
+
+    pthread_mutex_unlock(&lock);
 
     PennChordMessage stabilizeReq = PennChordMessage(PennChordMessage::MessageType::STABILIZE_REQ);
     stabilizeReq.SetStabilizeReq("");
 
-    sendTo(stabilizeReq, m_appPort, successorIP);
+    sendTo(stabilizeReq, m_appPort, successorIPCopy);
+
+    return;
   }
+
+  pthread_mutex_unlock(&lock);
 
 }
 
 void PennChord::ProcessStabilizeReq(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
+  pthread_mutex_lock(&lock);
   std::string fromNode = ReverseLookup(sourceAddress);
   std::string stabilizeMessage = message.GetStabilizeReq().stabilizeMessage;
   if (DEBUG) CHORD_LOG ("Received STABILIZE_REQ, From Node: " << fromNode << ", Message: " << stabilizeMessage);
 
   PennChordMessage stabilizeRsp = PennChordMessage(PennChordMessage::MessageType::STABILIZE_RSP);
   stabilizeRsp.SetStabilizeRsp(predecessorNumber);
+
+  pthread_mutex_unlock(&lock);
 
   sendTo(stabilizeRsp, m_appPort, sourceAddress);
 }
@@ -323,6 +350,7 @@ void PennChord::ProcessStabilizeRsp(PennChordMessage message, Ipv4Address source
   int successor_predecessor_num = std::stoi(msg);
   uint32_t suc_pred_hash = (successor_predecessor_num == -1) ? 0 : PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(successor_predecessor_num)), m_addressNodeMap);
 
+  pthread_mutex_lock(&lock);
   if ((successor_predecessor_num != -1) && ((successorHash > currHash && suc_pred_hash > currHash && suc_pred_hash < successorHash) || (successorHash < currHash && (suc_pred_hash > currHash || suc_pred_hash < successorHash)))) {
     successorNumber = msg;
     successorHash = suc_pred_hash;
@@ -331,16 +359,21 @@ void PennChord::ProcessStabilizeRsp(PennChordMessage message, Ipv4Address source
    if (DEBUG) fprintf(stderr, "\n Node %s updated its successor due to stabilize. New Info: Node = %s, Successor = %s, Predecessor = %s \n", currNumber.c_str(), currNumber.c_str(), successorNumber.c_str(), predecessorNumber.c_str());
   } 
 
+  pthread_mutex_unlock(&lock);
+
   Notify();
 }
 
 void PennChord::Notify() {
+  pthread_mutex_lock(&lock);
   haveNotifiedOnce = true;
+  Ipv4Address successorIPCopy = successorIP;
+  pthread_mutex_unlock(&lock);
 
   PennChordMessage notify = PennChordMessage(PennChordMessage::MessageType::NOTIFY);
   notify.SetNotify("");
 
-  sendTo(notify, m_appPort, successorIP);
+  sendTo(notify, m_appPort, successorIPCopy);
   
 }
 
@@ -348,6 +381,7 @@ void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddres
   std::string fromNode = ReverseLookup(sourceAddress);
   uint32_t fromNodeHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode))), m_addressNodeMap);
 
+  pthread_mutex_lock(&lock);
   if (DEBUG) fprintf(stderr, "\n Node %s sent notify to node %s \n", fromNode.c_str(), g_nodeId.c_str());
   bool inRange = (currHash > predecessorHash && fromNodeHash > predecessorHash && fromNodeHash < currHash) || (currHash < predecessorHash && (fromNodeHash > predecessorHash || fromNodeHash < currHash));
   if (predecessorNumber == "-1" || inRange) {
@@ -368,10 +402,13 @@ void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddres
       if (DEBUG) fprintf(stderr, "\n Node %s sent notify to node %s. Singleton update made! Node: %s, Predecessor: %s, Successor %s \n", fromNode.c_str(), g_nodeId.c_str(), g_nodeId.c_str(), predecessorNumber.c_str(), successorNumber.c_str());
     }
   } 
+
+  pthread_mutex_unlock(&lock);
   
 }
 
 void PennChord::Lookup(uint32_t id_hash) {
+    pthread_mutex_lock(&lock);
     CHORD_LOG("LookupIssue<" << std::to_string(currHash) << ", " << std::to_string(id_hash) << ">");
 
     PennChordMessage findPredReq = PennChordMessage(PennChordMessage::MessageType::FIND_PRED_REQ);
@@ -379,6 +416,7 @@ void PennChord::Lookup(uint32_t id_hash) {
 
     std::string closestNodeString = ClosestPrecedingNode(id_hash);
     Ipv4Address nextToSendTo = m_nodeAddressMap.at(static_cast<uint32_t>(std::stoul(closestNodeString)));
+    pthread_mutex_unlock(&lock);
 
     sendTo(findPredReq, m_appPort, nextToSendTo);
 
@@ -389,6 +427,8 @@ void PennChord::Lookup(uint32_t id_hash) {
 void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
   std::string fromNode = ReverseLookup (sourceAddress);
   std::string findPredMessage = message.GetFindPredRsp().findPredMessage;
+
+  pthread_mutex_lock(&lock);
   if (DEBUG) CHORD_LOG ("Received FIND_PRED_RSP, From Node: " << fromNode << ", Message: " << findPredMessage << ", Trying to Join: " << tryingToJoin);
 
   std::vector<std::string> v;
@@ -440,12 +480,16 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
     }
     
   }
+
+  pthread_mutex_unlock(&lock);
   
 }
 
 void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
   std::string fromNode = ReverseLookup (sourceAddress);
   std::string findPredMessage = message.GetFindPredReq().findPredMessage;
+
+  pthread_mutex_lock(&lock);
   if (DEBUG) CHORD_LOG ("Received FIND_PRED_REQ, From Node: " << fromNode << ", Message: " << findPredMessage << ", Trying to Join: " << tryingToJoin);
 
   std::vector<std::string> v;
@@ -468,6 +512,7 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
     //CHORD_LOG ("Received FIND_PRED_REQ for PUBLISH_QUERY, From Node: " << fromNode << ", Message: " << findPredMessage);
     pennPublishRequest = true;
   }
+
 
 
   int requesterNode = std::stoi(v.at(0));
@@ -501,6 +546,8 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
     // CHORD_LOG("LookupIssue<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ">");
     Ipv4Address requesterNodeIP = m_nodeAddressMap.at(requesterNode);
 
+    pthread_mutex_unlock(&lock);
+
     sendTo(findPredRsp, m_appPort, requesterNodeIP);
 
   // you're a forwarding node (send response to closest finger)
@@ -524,12 +571,14 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
 
     std::string closestFingerString = ClosestPrecedingNode(hashOfNode);
     Ipv4Address nextToSendTo = m_nodeAddressMap.at(static_cast<uint32_t>(std::stoul(closestFingerString)));
-     if (DEBUG) fprintf(stderr, "\n Forwarding FIND_PRED_REQ to %s \n", closestFingerString.c_str());
+    if (DEBUG) fprintf(stderr, "\n Forwarding FIND_PRED_REQ to %s \n", closestFingerString.c_str());
 
      // DEBUG statement should only print for lookup requests, not while fixing fingers 
-     if(pennSearchRequest || pennPublishRequest) {
+    if (pennSearchRequest || pennPublishRequest) {
       CHORD_LOG("LookupRequest<" << std::to_string(currHash) << ">: NextHop<" << closestFingerString << ", " << PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(closestFingerString))), m_addressNodeMap) << ", " << std::to_string(hashOfNode) << ">");
-     }
+    }
+    
+    pthread_mutex_unlock(&lock);
     
     sendTo(findPredReq, m_appPort, nextToSendTo);
   }
@@ -558,9 +607,12 @@ void PennChord::ProcessLeaveP(PennChordMessage message, Ipv4Address sourceAddres
   std::string fromNode = ReverseLookup (sourceAddress);
   std::string newSuccessorNum = message.GetLeaveP().leavePMessage;
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newSuccessorNum))), m_addressNodeMap);
+  
+  pthread_mutex_lock(&lock);
   successorNumber = newSuccessorNum;
   successorHash = hashOfNode;
   successorIP = m_nodeAddressMap.at(std::stoi(successorNumber)); 
+  pthread_mutex_unlock(&lock);
 }
 
 // If you are receiving this message, your predecessor left the ring -- update successor accordingly (you should receive your new pred in the message)
@@ -568,42 +620,60 @@ void PennChord::ProcessLeaveS(PennChordMessage message, Ipv4Address sourceAddres
   std::string fromNode = ReverseLookup (sourceAddress);
   std::string newPredecessorNum = message.GetLeaveS().leaveSMessage;
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newPredecessorNum))), m_addressNodeMap);
+  
+  pthread_mutex_lock(&lock);
   predecessorNumber = newPredecessorNum;
   predecessorHash = hashOfNode;
   predecessorIP = m_nodeAddressMap.at(std::stoi(predecessorNumber));
+  pthread_mutex_unlock(&lock);
 }
 
 // Called when a node voluntarily leaves
 // Need to (1) transfer keys to successor MS2 (2) notif pred (3) notif success
 void PennChord::Leave() {
 
+  pthread_mutex_lock(&lock);
   m_leaveFn(currIP, "");
   // message to pred contain's current node's successor 
   inRing = false;
 
+
   PennChordMessage leaveP = PennChordMessage(PennChordMessage::MessageType::LEAVE_P);
   leaveP.SetLeaveP(successorNumber);
-  sendTo(leaveP, m_appPort, predecessorIP);
+  Ipv4Address predecessorIPCopy = predecessorIP;
+  pthread_mutex_unlock(&lock);
+  sendTo(leaveP, m_appPort, predecessorIPCopy);
 
   // message to successor contain's current node's pred 
   PennChordMessage leaveS = PennChordMessage(PennChordMessage::MessageType::LEAVE_S);
+  pthread_mutex_lock(&lock);
   leaveS.SetLeaveS(predecessorNumber);
-  sendTo(leaveS, m_appPort, successorIP);
+  Ipv4Address successorIPCopy = successorIP;
+  pthread_mutex_unlock(&lock);
+
+  sendTo(leaveS, m_appPort, successorIPCopy);
 }
 
 // Called when a RINGSTATE command is issued
 void PennChord::RingState() {
   // Send out a message to successor
   PennChordMessage ringStateMsg = PennChordMessage(PennChordMessage::MessageType::RING_STATE);
+  pthread_mutex_lock(&lock);
+
   ringStateMsg.SetRingState(currNumber);
+  Ipv4Address successorIPCopy = successorIP;
+
+  pthread_mutex_unlock(&lock);
+
   // PRINT_LOG("Sending to " << successorIP << " Node = " << successorNumber);
-  sendTo(ringStateMsg, m_appPort, successorIP);
+  sendTo(ringStateMsg, m_appPort, successorIPCopy);
 }
 
 void PennChord::ProcessRingState(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort)
 {
   // PRINT_LOG("CurrNumber = " << currNumber << " ringStateMessage = " << message.GetRingState().ringStateMessage);
   // Print out the ring state at the current node
+  pthread_mutex_lock(&lock);
   PRINT_LOG("Ring State\n"
             << "\tCurr<Node " << currNumber << ", " << currIP << ", " << PennKeyHelper::KeyToHexString(currHash)<< ">\n"
             << "\tPred<Node " << predecessorNumber << ", " << predecessorIP << ", " << PennKeyHelper::KeyToHexString(predecessorHash) << ">\n"
@@ -616,9 +686,13 @@ void PennChord::ProcessRingState(PennChordMessage message, Ipv4Address sourceAdd
     PennChordMessage ringStateMsg = PennChordMessage(PennChordMessage::MessageType::RING_STATE);
     ringStateMsg.SetRingState(message.GetRingState().ringStateMessage);
     // PRINT_LOG("Sending to " << successorIP << " Node = " << successorNumber);
-    sendTo(ringStateMsg, m_appPort, successorIP);
+    Ipv4Address successorIPCopy = successorIP;
+    pthread_mutex_unlock(&lock);
+
+    sendTo(ringStateMsg, m_appPort, successorIPCopy);
   } else {
     // If originator, print End of Ring State message
+    pthread_mutex_unlock(&lock);
     PRINT_LOG("End of Ring State");
   }
 }

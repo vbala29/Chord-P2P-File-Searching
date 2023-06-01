@@ -14,6 +14,8 @@
 
 #define MAX_THREADS 100
 
+void initMutexAndAttr(pthread_mutex_t& mutex, pthread_mutexattr_t& attr);
+
 
 template <typename T>
 class ThreadPool {

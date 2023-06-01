@@ -139,9 +139,6 @@ class PennChord : public PennApplication
     int m_appPort;
     
     // Callbacks
-    Callback m_pingSuccessFn;
-    Callback m_pingFailureFn;
-    Callback m_pingRecvFn;
     Callback m_publishFn;
     Callback m_searchFn;
     Callback m_leaveFn;
@@ -149,6 +146,8 @@ class PennChord : public PennApplication
 
     // Finger Table
     std::array<std::string, 32> m_fingerTable; //stores node numbers not hash numbers
+
+    pthread_mutex_t lock; //To lock succ, pred, curr, and finger table information. Also the booleans above
     
 
 
