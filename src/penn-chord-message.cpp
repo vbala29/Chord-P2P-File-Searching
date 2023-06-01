@@ -116,9 +116,8 @@ PennChordMessage::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::Serialize (Buffer::Iterator& start) const
+PennChordMessage::Serialize (Buffer::Iterator&& i) const
 {
-  Buffer::Iterator i = start;
   i.WriteU8 (m_messageType);
   i.WriteHtonU32 (0); //The deprecated transaction ID
 
