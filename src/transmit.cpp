@@ -18,7 +18,7 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
 
 
 
-    bzero((char*) &node_addr, sizeof(node_addr));
+   //bzero((char*) &node_addr, sizeof(node_addr));
     portno = port;
 
     node_addr.sin_family = AF_INET; //TCP protocol

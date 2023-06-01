@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
     std::map<uint32_t, Ipv4Address> m_nodeAddressMap = {
         {1, Ipv4Address(192, 168, 86, 216)},
-        {2, Ipv4Address(192, 168, 200, 23)},
+        {2, Ipv4Address(192, 168, 86, 230)},
         {3, Ipv4Address(127, 0, 0, 3)},
         {4, Ipv4Address(127, 0, 0, 4)},
     };
