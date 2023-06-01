@@ -11,7 +11,7 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
     struct sockaddr_in node_addr;
 
     while(sockfd < 0) {
-        sockfd = socket(AF_INET, SOCK_STREAM, PF_INET); //internetwork, TCP/IP, IPv4
+        sockfd = socket(AF_INET, SOCK_STREAM, 0); //internetwork, TCP/IP, IPv4
         if (sockfd < 0) {
             perror("Error opening socket");
         }

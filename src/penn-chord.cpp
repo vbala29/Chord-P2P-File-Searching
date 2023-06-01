@@ -89,10 +89,10 @@ void* ReceiveThread(void* args) {
   int n;
 
 
-  sockfd = socket(AF_INET, SOCK_STREAM, PF_INET);
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
   while (sockfd < 0) {
     perror("ERROR opening socket in ReceiveThread()");
-    sockfd = socket(AF_INET, SOCK_STREAM, PF_INET);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
   }
 
   bzero((char *) &my_addr, sizeof(my_addr));
