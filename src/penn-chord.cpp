@@ -60,7 +60,7 @@ void* FixFingersThread(void* args) {
 void* CommandLineThread(void* args) {
   while (true) {
     std::string s;
-    std::cin >> s;
+    std::getline(std::cin, s);
     std::stringstream ss {s};
     std::vector<std::string> tokens;
 
@@ -200,6 +200,7 @@ PennChord::ProcessCommand (std::vector<std::string> tokens)
       return;
     }
 
+    // std::cout << "Node Id: [" << g_nodeId << "], tokens.at(1) = [" << tokens.at(1) << "]" << std::endl;
     if (g_nodeId == tokens.at(1)) {
       CreateRing(g_nodeId);
     } else {
@@ -275,6 +276,7 @@ void PennChord::Join(std::string& nodeContained, std::string& currNum) {
 void PennChord::FixFingers() {
   pthread_mutex_lock(&lock);
   if (!inRing || isSingleton || !haveNotifiedOnce) {
+    pthread_mutex_unlock(&lock);
     return; //Ensures node fields are initialized before calling fix fingers code.
   }
 

@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
         {Ipv4Address(127, 0, 0, 4), 4},
     };
 
+    std::cout << "ARGV1: " << std::string(argv[1]) << ", ARGV2: " << std::string(argv[2]) << std::endl;
     pc.StartApplication(m_nodeAddressMap, m_addressNodeMap, Ipv4Address(std::stoi(argv[1])), argv[2]);
 
     while(1);
