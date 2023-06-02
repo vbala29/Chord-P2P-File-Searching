@@ -171,7 +171,7 @@ void* ReceiveThread(void* args) {
       continue;
     }
     
-    fprintf(stderr, "established TCP connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+    // fprintf(stderr, "established TCP connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
     n = read(newsockfd, buff, 4095);
     if (n == -1) {
       perror("Error on read() in ReceiveThread()");
@@ -197,7 +197,6 @@ void* ReceiveThread(void* args) {
     unsigned int* addrPtr = (unsigned int*) malloc(sizeof(unsigned int));
     ipStringToNumber(inet_ntoa(cli_addr.sin_addr), addrPtr);
     static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(static_cast<uint32_t>(*addrPtr)));
-    std::cerr << "returned " << std::endl << std::flush;
   }
 
   return NULL;
@@ -779,7 +778,7 @@ void
 PennChord::RecvMessage (PennChordMessage message, Ipv4Address sourceAddress)
 {
   uint16_t sourcePort = m_appPort; //Not actually used by any of the methods below
-  std::cout << "Received message of type " << message.GetMessageType() << ", from: " << sourceAddress.Ipv4ToString() << std::endl << std::flush;
+  // std::cout << "Received message of type " << message.GetMessageType() << ", from: " << sourceAddress.Ipv4ToString() << std::endl << std::flush;
 
   switch (message.GetMessageType ())
     {
