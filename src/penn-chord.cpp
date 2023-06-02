@@ -197,7 +197,7 @@ void* ReceiveThread(void* args) {
     unsigned int* addrPtr = (unsigned int*) malloc(sizeof(unsigned int));
     ipStringToNumber(inet_ntoa(cli_addr.sin_addr), addrPtr);
     static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(static_cast<uint32_t>(*addrPtr)));
-      std::cout << "returned " << std::endl << std::flush;
+    std::cerr << "returned " << std::endl << std::flush;
   }
 
   return NULL;
@@ -471,6 +471,8 @@ void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddres
       if (DEBUG) fprintf(stderr, "\n Node %s sent notify to node %s. Singleton update made! Node: %s, Predecessor: %s, Successor %s \n", fromNode.c_str(), g_nodeId.c_str(), g_nodeId.c_str(), predecessorNumber.c_str(), successorNumber.c_str());
     }
   } 
+
+  std::cerr << "In process notify " << std::endl << std::flush;
 
   pthread_mutex_unlock(&lock);
   
