@@ -180,7 +180,7 @@ void* ReceiveThread(void* args) {
     }
 
     close(newsockfd);
-    
+
     BufferV2 b{};
     b.Write(buff, n);
 
@@ -446,6 +446,7 @@ void PennChord::Notify() {
 }
 
 void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
+  std::cout << "In process notify " << std::endl;
   std::string fromNode = ReverseLookup(sourceAddress);
   uint32_t fromNodeHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode))), m_addressNodeMap);
 
