@@ -38,18 +38,19 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
     
 
     BufferV2 b{};
-    std::cout << "Size of buffer rn : " << b.GetSerializedSize() << ", size needed: " << message.GetSerializedSize() << std::endl << std::flush;
+    // std::cout << "Size of buffer rn : " << b.GetSerializedSize() << ", size needed: " << message.GetSerializedSize() << std::endl << std::flush;
+    
     message.Serialize(b);
     uint8_t* buf = (uint8_t*) calloc(sizeof(uint8_t) * message.GetSerializedSize(), 1);
     if (b.Serialize(buf, message.GetSerializedSize()) == 0) {
         perror("Buffer not large enough");
     }
 
-    std::cout << "Size of buffer now: " << b.GetSerializedSize() << std::endl << std::flush;
-    for (int i = 0; i < b.GetSerializedSize(); i++) {
-        std::cout << unsigned(buf[i]) << ", ";
-    } 
-    std::cout << std::endl << std::flush;
+    // std::cout << "Size of buffer now: " << b.GetSerializedSize() << std::endl << std::flush;
+    // for (int i = 0; i < b.GetSerializedSize(); i++) {
+    //     std::cout << unsigned(buf[i]) << ", ";
+    // } 
+    // std::cout << std::endl << std::flush;
  
     if (send(sockfd, buf, (size_t) b.GetSerializedSize(), 0) < 0) {
         perror("Error with send(2) call");
