@@ -449,11 +449,12 @@ void PennChord::Notify() {
 void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
   std::string fromNode = ReverseLookup(sourceAddress);
   uint32_t fromNodeHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode))), m_addressNodeMap);
-
+    std::cerr << "In process notify 1 " << std::endl << std::flush;
   pthread_mutex_lock(&lock);
   if (DEBUG) fprintf(stderr, "\n Node %s sent notify to node %s \n", fromNode.c_str(), g_nodeId.c_str());
   bool inRange = (currHash > predecessorHash && fromNodeHash > predecessorHash && fromNodeHash < currHash) || (currHash < predecessorHash && (fromNodeHash > predecessorHash || fromNodeHash < currHash));
   if (predecessorNumber == "-1" || inRange) {
+      std::cerr << "In process notify 2 " << std::endl << std::flush;
     predecessorNumber = fromNode;
     predecessorHash = fromNodeHash;
     predecessorIP = m_nodeAddressMap.at(std::stoi(fromNode)); 
