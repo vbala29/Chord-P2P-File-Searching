@@ -723,7 +723,7 @@ void
 PennChord::RecvMessage (PennChordMessage message, Ipv4Address sourceAddress)
 {
   uint16_t sourcePort = m_appPort; //Not actually used by any of the methods below
-  // std::cout << "In Recv(): " << message.GetMessageType() << std::endl << std::flush;
+  std::cout << "Received message of type " << message.GetMessageType() << ", from: " << sourceAddress.Ipv4ToString() << std::endl << std::flush;
 
   switch (message.GetMessageType ())
     {

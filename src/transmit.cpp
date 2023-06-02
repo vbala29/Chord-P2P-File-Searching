@@ -10,6 +10,9 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
     int sockfd, portno;
     struct sockaddr_in node_addr;
 
+    std::cout << "Sending message: " << message.GetMessageType() << ", on port: " << port << ", to IP: " << 
+            ip.Ipv4ToString() << std::endl << std::flush;
+
     sockfd = socket(AF_INET, SOCK_STREAM, 0); //internetwork, TCP/IP, default protocol
     if (sockfd < 0) {
         perror("Error opening socket");
