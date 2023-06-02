@@ -37,16 +37,17 @@ void sendTo(PennChordMessage message, int port, Ipv4Address ip) {
     }
     
 
-    Buffer b{};
-    message.Serialize(b.Begin());
-    uint8_t* buf = (uint8_t*) malloc(sizeof(uint8_t) * b.GetSerializedSize());
-    if (b.Serialize(buf, b.GetSerializedSize()) == 0) {
+    BufferV2 b{};
+    std::cout << "Size of buffer rn : " << b.GetSerializedSize() << ", size needed: " << message.GetSerializedSize() << std::endl << std::flush;
+    message.Serialize(b);
+    uint8_t* buf = (uint8_t*) calloc(sizeof(uint8_t) * message.GetSerializedSize(), 1);
+    if (b.Serialize(buf, message.GetSerializedSize()) == 0) {
         perror("Buffer not large enough");
     }
 
-    std::cout << "Size of message txed: " << b.GetSerializedSize() << std::endl << std::flush;
+    std::cout << "Size of buffer now: " << b.GetSerializedSize() << std::endl << std::flush;
     for (int i = 0; i < b.GetSerializedSize(); i++) {
-        std::cout << std::to_string(buf[i]) << ", ";
+        std::cout << unsigned(buf[i]) << ", ";
     } 
     std::cout << std::endl << std::flush;
  

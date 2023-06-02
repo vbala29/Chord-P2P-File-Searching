@@ -27,7 +27,7 @@
 
 
 #include "ipv4.hpp"
-#include "buffer.h"
+#include "BufferV2.h"
 #include "penn-application.h"
 #include "penn-chord-message.h"
 #include "penn-key-helper.h"
@@ -50,7 +50,6 @@
 #define SEARCH_QUERY "1"
 #define PUBLISH_QUERY "2"
 
-using namespace ns3;
 
 class PennChord : public PennApplication
 {

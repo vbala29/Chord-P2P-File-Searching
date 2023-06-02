@@ -9,6 +9,7 @@
 
 #include "penn-chord-message.h"
 #include "ipv4.hpp"
+#include "BufferV2.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>

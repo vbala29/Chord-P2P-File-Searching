@@ -23,8 +23,6 @@
 #include "penn-chord-message.h"
 #include "assert.h"
 
-using namespace ns3;
-
 PennChordMessage::PennChordMessage ()
 {
 }
@@ -116,7 +114,7 @@ PennChordMessage::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::Serialize (Buffer::Iterator&& i) const
+PennChordMessage::Serialize (BufferV2& i) const
 {
   i.WriteU8 (m_messageType);
   i.WriteHtonU32 (0); //The deprecated transaction ID
@@ -153,10 +151,9 @@ PennChordMessage::Serialize (Buffer::Iterator&& i) const
 }
 
 uint32_t 
-PennChordMessage::Deserialize (Buffer::Iterator start)
+PennChordMessage::Deserialize (BufferV2& i)
 {
   uint32_t size;
-  Buffer::Iterator i = start;
   m_messageType = (MessageType) i.ReadU8 ();
   i.ReadNtohU32 (); //discard the old transaction ID
 
@@ -212,14 +209,14 @@ PennChordMessage::FindPredReq::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::FindPredReq::Serialize (Buffer::Iterator &start) const
+PennChordMessage::FindPredReq::Serialize (BufferV2 &start) const
 {
   start.WriteU16 (findPredMessage.length ());
   start.Write ((uint8_t *) (const_cast<char*> (findPredMessage.c_str())), findPredMessage.length());
 }
 
 uint32_t
-PennChordMessage::FindPredReq::Deserialize (Buffer::Iterator &start)
+PennChordMessage::FindPredReq::Deserialize (BufferV2 &start)
 {  
   uint16_t length = start.ReadU16 ();
   char* str = (char*) malloc (length);
@@ -267,14 +264,14 @@ PennChordMessage::FindPredRsp::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::FindPredRsp::Serialize (Buffer::Iterator &start) const
+PennChordMessage::FindPredRsp::Serialize (BufferV2 &start) const
 {
   start.WriteU16 (findPredMessage.length ());
   start.Write ((uint8_t *) (const_cast<char*> (findPredMessage.c_str())), findPredMessage.length());
 }
 
 uint32_t
-PennChordMessage::FindPredRsp::Deserialize (Buffer::Iterator &start)
+PennChordMessage::FindPredRsp::Deserialize (BufferV2 &start)
 {  
   uint16_t length = start.ReadU16 ();
   char* str = (char*) malloc (length);
@@ -324,14 +321,14 @@ PennChordMessage::StabilizeReq::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::StabilizeReq::Serialize (Buffer::Iterator &start) const
+PennChordMessage::StabilizeReq::Serialize (BufferV2 &start) const
 {
   start.WriteU16 (stabilizeMessage.length ());
   start.Write ((uint8_t *) (const_cast<char*> (stabilizeMessage.c_str())), stabilizeMessage.length());
 }
 
 uint32_t
-PennChordMessage::StabilizeReq::Deserialize (Buffer::Iterator &start)
+PennChordMessage::StabilizeReq::Deserialize (BufferV2 &start)
 {  
   uint16_t length = start.ReadU16 ();
   char* str = (char*) malloc (length);
@@ -380,14 +377,14 @@ PennChordMessage::StabilizeRsp::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::StabilizeRsp::Serialize (Buffer::Iterator &start) const
+PennChordMessage::StabilizeRsp::Serialize (BufferV2 &start) const
 {
   start.WriteU16 (stabilizeMessage.length ());
   start.Write ((uint8_t *) (const_cast<char*> (stabilizeMessage.c_str())), stabilizeMessage.length());
 }
 
 uint32_t
-PennChordMessage::StabilizeRsp::Deserialize (Buffer::Iterator &start)
+PennChordMessage::StabilizeRsp::Deserialize (BufferV2 &start)
 {  
   uint16_t length = start.ReadU16 ();
   char* str = (char*) malloc (length);
@@ -436,14 +433,14 @@ PennChordMessage::Notify::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::Notify::Serialize (Buffer::Iterator &start) const
+PennChordMessage::Notify::Serialize (BufferV2 &start) const
 {
   start.WriteU16 (notifyMessage.length ());
   start.Write ((uint8_t *) (const_cast<char*> (notifyMessage.c_str())), notifyMessage.length());
 }
 
 uint32_t
-PennChordMessage::Notify::Deserialize (Buffer::Iterator &start)
+PennChordMessage::Notify::Deserialize (BufferV2 &start)
 {  
   uint16_t length = start.ReadU16 ();
   char* str = (char*) malloc (length);
@@ -491,14 +488,14 @@ PennChordMessage::LeaveP::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::LeaveP::Serialize (Buffer::Iterator &start) const
+PennChordMessage::LeaveP::Serialize (BufferV2 &start) const
 {
   start.WriteU16 (leavePMessage.length ());
   start.Write ((uint8_t *) (const_cast<char*> (leavePMessage.c_str())), leavePMessage.length());
 }
 
 uint32_t
-PennChordMessage::LeaveP::Deserialize (Buffer::Iterator &start)
+PennChordMessage::LeaveP::Deserialize (BufferV2 &start)
 {  
   uint16_t length = start.ReadU16 ();
   char* str = (char*) malloc (length);
@@ -547,14 +544,14 @@ PennChordMessage::LeaveS::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::LeaveS::Serialize (Buffer::Iterator &start) const
+PennChordMessage::LeaveS::Serialize (BufferV2 &start) const
 {
   start.WriteU16 (leaveSMessage.length ());
   start.Write ((uint8_t *) (const_cast<char*> (leaveSMessage.c_str())), leaveSMessage.length());
 }
 
 uint32_t
-PennChordMessage::LeaveS::Deserialize (Buffer::Iterator &start)
+PennChordMessage::LeaveS::Deserialize (BufferV2 &start)
 {  
   uint16_t length = start.ReadU16 ();
   char* str = (char*) malloc (length);
@@ -603,14 +600,14 @@ PennChordMessage::RingState::Print (std::ostream &os) const
 }
 
 void
-PennChordMessage::RingState::Serialize (Buffer::Iterator &start) const
+PennChordMessage::RingState::Serialize (BufferV2 &start) const
 {
   start.WriteU16 (ringStateMessage.length ());
   start.Write ((uint8_t *) (const_cast<char*> (ringStateMessage.c_str())), ringStateMessage.length());
 }
 
 uint32_t
-PennChordMessage::RingState::Deserialize (Buffer::Iterator &start)
+PennChordMessage::RingState::Deserialize (BufferV2 &start)
 {  
   uint16_t length = start.ReadU16 ();
   char* str = (char*) malloc (length);

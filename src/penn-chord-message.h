@@ -25,9 +25,8 @@
 
 #include <stdint.h>
 #include <string>
-#include "buffer.h"
-
-using namespace ns3; //For the Buffer class
+#include <iostream>
+#include "BufferV2.h"
 
 #define IPV4_ADDRESS_SIZE 4
 
@@ -77,15 +76,15 @@ class PennChordMessage
   public:
     void Print (std::ostream &os) const;
     uint32_t GetSerializedSize (void) const;
-    void Serialize (Buffer::Iterator&& i) const;
-    uint32_t Deserialize (Buffer::Iterator start);
+    void Serialize (BufferV2& i) const;
+    uint32_t Deserialize (BufferV2& i);
 
     struct FindPredReq
       {
         void Print (std::ostream &os) const;
         uint32_t GetSerializedSize (void) const;
-        void Serialize (Buffer::Iterator &start) const;
-        uint32_t Deserialize (Buffer::Iterator &start);
+        void Serialize (BufferV2 &start) const;
+        uint32_t Deserialize (BufferV2 &start);
         // Payload
         std::string findPredMessage; //(sender node), (node whose predecessor we want), ("1" if NOT HASHED node whose predecessor we want, "0" otherwise), "1" == SEARCHREQUEST or "2"== PUBLISHREQUEST (optional), hop count (optional)
       };
@@ -94,8 +93,8 @@ class PennChordMessage
       {
         void Print (std::ostream &os) const;
         uint32_t GetSerializedSize (void) const;
-        void Serialize (Buffer::Iterator &start) const;
-        uint32_t Deserialize (Buffer::Iterator &start);
+        void Serialize (BufferV2 &start) const;
+        uint32_t Deserialize (BufferV2 &start);
         // Payload
         std::string findPredMessage; //Returns node,successor,predecessor, "1" == SEARCHREQUEST or "2"==PUBLISHREQUEST (optional), hash of value whose predecessor we wanted (optional), hop count (optional)
       };
@@ -104,8 +103,8 @@ class PennChordMessage
       {
         void Print (std::ostream &os) const;
         uint32_t GetSerializedSize (void) const;
-        void Serialize (Buffer::Iterator &start) const;
-        uint32_t Deserialize (Buffer::Iterator &start);
+        void Serialize (BufferV2 &start) const;
+        uint32_t Deserialize (BufferV2 &start);
         // Payload
         std::string stabilizeMessage; //Empty
       };
@@ -114,8 +113,8 @@ class PennChordMessage
       {
         void Print (std::ostream &os) const;
         uint32_t GetSerializedSize (void) const;
-        void Serialize (Buffer::Iterator &start) const;
-        uint32_t Deserialize (Buffer::Iterator &start);
+        void Serialize (BufferV2 &start) const;
+        uint32_t Deserialize (BufferV2 &start);
         // Payload
         std::string stabilizeMessage; //Returns successor.predecessor
       };
@@ -124,8 +123,8 @@ class PennChordMessage
       {
         void Print (std::ostream &os) const;
         uint32_t GetSerializedSize (void) const;
-        void Serialize (Buffer::Iterator &start) const;
-        uint32_t Deserialize (Buffer::Iterator &start);
+        void Serialize (BufferV2 &start) const;
+        uint32_t Deserialize (BufferV2 &start);
         // Payload
         std::string notifyMessage;
       };
@@ -134,8 +133,8 @@ class PennChordMessage
       {
         void Print (std::ostream &os) const;
         uint32_t GetSerializedSize (void) const;
-        void Serialize (Buffer::Iterator &start) const;
-        uint32_t Deserialize (Buffer::Iterator &start);
+        void Serialize (BufferV2 &start) const;
+        uint32_t Deserialize (BufferV2 &start);
         // Payload
         std::string leavePMessage;
       };
@@ -144,8 +143,8 @@ class PennChordMessage
       {
         void Print (std::ostream &os) const;
         uint32_t GetSerializedSize (void) const;
-        void Serialize (Buffer::Iterator &start) const;
-        uint32_t Deserialize (Buffer::Iterator &start);
+        void Serialize (BufferV2 &start) const;
+        uint32_t Deserialize (BufferV2 &start);
         // Payload
         std::string leaveSMessage;
       };
@@ -154,8 +153,8 @@ class PennChordMessage
       {
         void Print (std::ostream &os) const;
         uint32_t GetSerializedSize (void) const;
-        void Serialize (Buffer::Iterator &start) const;
-        uint32_t Deserialize (Buffer::Iterator &start);
+        void Serialize (BufferV2 &start) const;
+        uint32_t Deserialize (BufferV2 &start);
         // Payload
         std::string ringStateMessage;
       };

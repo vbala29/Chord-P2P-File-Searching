@@ -28,7 +28,6 @@
 
 #define DEBUG 0
 
-using namespace ns3;
 
 PennChord::PennChord ()
 {
@@ -137,9 +136,8 @@ void* ReceiveThread(void* args) {
       continue;
     }
 
-    Buffer b{};
-    Buffer::Iterator it = b.Begin();
-    it.Write(buff, n);
+    BufferV2 b{};
+    b.Write(buff, n);
 
     std::cout << "Size of message rxed: " << n << std::endl << std::flush;
     for (int i = 0; i < n; i++) {
@@ -148,7 +146,7 @@ void* ReceiveThread(void* args) {
     std::cout << std::endl << std::flush;
 
     PennChordMessage pcm;
-    pcm.Deserialize(it);
+    pcm.Deserialize(b);
 
     //Add in thread pool once this actually works TODO
     static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(cli_addr.sin_addr.s_addr));
