@@ -163,7 +163,8 @@ void* ReceiveThread(void* args) {
 
   while(true) {
     clilen = sizeof(cli_addr);
-    std::cout << "Waiting to accept connection" << std::endl << std::flush;
+    // std::cout << "Waiting to accept connection" << std::endl << std::flush;
+    
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
     if (newsockfd < 0) {
       close(newsockfd);
