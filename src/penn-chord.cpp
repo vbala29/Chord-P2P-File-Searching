@@ -297,6 +297,8 @@ void PennChord::CreateRing(std::string& currNum) {
   predecessorHash =  -1;
   predecessorIP = currIP;
 
+  nextFinger = 0;
+
   for (int i = 0; i < 32; i++) {
     m_fingerTable[i] = "-1";
   }
@@ -514,6 +516,8 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
 
   bool pennSearchRequest = false;
   bool pennPublishRequest = false;
+
+
   if (v.size() >= 4 && v.at(3) == SEARCH_QUERY) {
     // CHORD_LOG ("Received FIND_PRED_RSP for SEARCH_QUERY, From Node: " << fromNode << ", Message: " << findPredMessage);
     pennSearchRequest = true;
@@ -522,7 +526,7 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
     pennPublishRequest = true;
   }
 
-  
+
   if (pennPublishRequest) {
     // LookupResult<currentNodeKey, targetKey, originatorNodeNum, originatorNodeKey>
     // CHORD_LOG("LookupResult<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ", " << fromNode  << ", " << PennKeyHelper::CreateShaKey(fromNode) << ">");
@@ -533,6 +537,7 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
     m_searchFn(sourceAddress, findPredMessage);
     totalHops += std::stoi(v.at(5)); //Update hop count
   } else if (tryingToJoin) {
+
     successorNumber = v.at(1); //The successor of the predecessor is the successor of our node now.
     successorIP = m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(successorNumber))); 
     successorHash = PennKeyHelper::CreateShaKey(successorIP, m_addressNodeMap);
@@ -551,6 +556,7 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
     }
     
   }
+
 
   pthread_mutex_unlock(&lock);
   
