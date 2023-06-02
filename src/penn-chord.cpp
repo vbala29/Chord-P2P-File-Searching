@@ -166,6 +166,7 @@ void* ReceiveThread(void* args) {
     std::cout << "Waiting to accept connection" << std::endl << std::flush;
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
     if (newsockfd < 0) {
+      close(newsockfd);
       perror("ERROR on accept in ReceiveThread()");
       continue;
     }
@@ -174,9 +175,12 @@ void* ReceiveThread(void* args) {
     n = read(newsockfd, buff, 4095);
     if (n == -1) {
       perror("Error on read() in ReceiveThread()");
+      close(newsockfd);
       continue;
     }
 
+    close(newsockfd);
+    
     BufferV2 b{};
     b.Write(buff, n);
 
@@ -193,7 +197,6 @@ void* ReceiveThread(void* args) {
     unsigned int* addrPtr = (unsigned int*) malloc(sizeof(unsigned int));
     ipStringToNumber(inet_ntoa(cli_addr.sin_addr), addrPtr);
     static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(static_cast<uint32_t>(*addrPtr)));
-    close(newsockfd);
   }
 
   return NULL;

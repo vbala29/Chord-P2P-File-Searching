@@ -1,7 +1,7 @@
 #ifndef BUFFERV2_HPP
 #define BUFFERV2_HPP
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 100
 
 #include <stdint.h>
 #include <cstring>
