@@ -11,7 +11,7 @@ BufferV2::BufferV2(BufferV2 &buffer) {
 }
 
 BufferV2::~BufferV2() {
-    delete m_buffer;
+    delete[] m_buffer;
 }
 
 void BufferV2::Write(const uint8_t* buffer, uint32_t size) {

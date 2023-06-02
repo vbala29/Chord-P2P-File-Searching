@@ -193,6 +193,7 @@ void* ReceiveThread(void* args) {
     unsigned int* addrPtr = (unsigned int*) malloc(sizeof(unsigned int));
     ipStringToNumber(inet_ntoa(cli_addr.sin_addr), addrPtr);
     static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(static_cast<uint32_t>(*addrPtr)));
+    close(newsockfd);
   }
 
   return NULL;
