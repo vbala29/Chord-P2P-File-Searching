@@ -197,6 +197,7 @@ void* ReceiveThread(void* args) {
     unsigned int* addrPtr = (unsigned int*) malloc(sizeof(unsigned int));
     ipStringToNumber(inet_ntoa(cli_addr.sin_addr), addrPtr);
     static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(static_cast<uint32_t>(*addrPtr)));
+      std::cout << "returned " << std::endl << std::flush;
   }
 
   return NULL;
@@ -446,7 +447,6 @@ void PennChord::Notify() {
 }
 
 void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort) {
-  std::cout << "In process notify " << std::endl;
   std::string fromNode = ReverseLookup(sourceAddress);
   uint32_t fromNodeHash = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(fromNode))), m_addressNodeMap);
 
@@ -473,6 +473,7 @@ void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddres
   } 
 
   pthread_mutex_unlock(&lock);
+  
   
 }
 
