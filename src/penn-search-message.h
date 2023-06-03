@@ -63,8 +63,8 @@ class PennSearchMessage
   public:
     void Print (std::ostream &os) const;
     uint32_t GetSerializedSize (void) const;
-    void Serialize (BufferV2& start) const;
-    uint32_t Deserialize (BufferV2& start);
+    void Serialize (BufferV2& i) const;
+    uint32_t Deserialize (BufferV2& i);
 
 
     struct Publish

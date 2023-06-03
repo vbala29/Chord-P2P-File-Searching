@@ -79,9 +79,8 @@ PennSearchMessage::Print (std::ostream &os) const
 }
 
 void
-PennSearchMessage::Serialize (BufferV2& start) const
+PennSearchMessage::Serialize (BufferV2& i) const
 {
-  BufferV2 i = start;
   i.WriteU8 (m_messageType);
   i.WriteHtonU32 (0); //Dummy transaction ID
 
@@ -102,10 +101,9 @@ PennSearchMessage::Serialize (BufferV2& start) const
 }
 
 uint32_t 
-PennSearchMessage::Deserialize (BufferV2& start)
+PennSearchMessage::Deserialize (BufferV2& i)
 {
   uint32_t size;
-  BufferV2 i = start;
   m_messageType = (MessageType) i.ReadU8 ();
   i.ReadNtohU32 (); //read transaction ID
 
