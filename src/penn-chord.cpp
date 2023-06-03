@@ -666,12 +666,15 @@ void PennChord::ProcessLeaveP(PennChordMessage message, Ipv4Address sourceAddres
   std::string newSuccessorNum = message.GetLeaveP().leavePMessage;
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newSuccessorNum))), m_addressNodeMap);
   
-  std::cerr << "in here: " << newSuccessorNum << ", " << predecessorNumber << ", " << successorNumber << std::endl;
   pthread_mutex_lock(&lock);
   successorNumber = (newSuccessorNum == currNumber) || (predecessorNumber == "-1") ? "-1" : newSuccessorNum; //Checks for case where you are now only node in ring
   successorHash = (newSuccessorNum == currNumber) || (predecessorNumber == "-1") ? -1 : hashOfNode; //Checks for case where you are now only node in ring
   successorIP = (newSuccessorNum == currNumber) || (predecessorNumber == "-1") ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(successorNumber)); 
+  if (successorNumber == "-1") {
+    isSingleton = true;
+  }
   pthread_mutex_unlock(&lock);
+
 }
 
 // If you are receiving this message, your predecessor left the ring -- update successor accordingly (you should receive your new pred in the message)
@@ -679,13 +682,16 @@ void PennChord::ProcessLeaveS(PennChordMessage message, Ipv4Address sourceAddres
   std::string fromNode = ReverseLookup (sourceAddress);
   std::string newPredecessorNum = message.GetLeaveS().leaveSMessage;
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newPredecessorNum))), m_addressNodeMap);
-  std::cerr << "in her2e: " << newPredecessorNum << ", " << predecessorNumber << ", " << successorNumber << std::endl;
+
   pthread_mutex_lock(&lock);
   predecessorNumber = (newPredecessorNum == currNumber) || (successorNumber == "-1") ? "-1" : newPredecessorNum; //Checks for case where you are now only node in ring
   predecessorHash = (newPredecessorNum == currNumber) || (successorNumber == "-1") ? -1 : hashOfNode; //Checks for case where you are now only node in ring
   predecessorIP = (newPredecessorNum == currNumber) || (successorNumber == "-1") ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(predecessorNumber));
+  if (predecessorNumber == "-1") {
+    isSingleton = true;
+  }
   pthread_mutex_unlock(&lock);
-  std::cerr << "in here: mewo" << std::endl;
+
 }
 
 // Called when a node voluntarily leaves
