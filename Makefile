@@ -29,14 +29,8 @@ chord : $(CHORD_OBJS) $(UTIL_OBJS) $(OBJS)
 	$(CC) -o $@ $^
 
 all : util src chord
+	mv *.o ./bin
 
 clean :
 	$(RM) ./bin/*
 	rm -r chord
-
-
-# TEST_SRCS = $(wildcard ./tests/*.cpp)
-# TEST_OBJS = $(TEST_SRCS:.c=.o)
-
-# test : $(OBJS) $(TEST_OBJS) $(TP_OBJS)
-# 	$(CC) -o $@ $^ 
