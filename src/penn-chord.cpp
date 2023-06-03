@@ -524,7 +524,7 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
     successorNumber = v.at(1); //The successor of the predecessor is the successor of our node now.
     successorIP = m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(successorNumber))); 
     successorHash = PennKeyHelper::CreateShaKey(successorIP, m_addressNodeMap);
-   if (DEBUG) fprintf(stderr, "\n Node %s received tryingToJoin response with successor as %s \n", g_nodeId.c_str(), successorNumber.c_str());
+   if (1) fprintf(stderr, "\n Node %s received tryingToJoin response with successor as %s \n", g_nodeId.c_str(), successorNumber.c_str());
 
     tryingToJoin = false; 
     inRing = true;
@@ -684,12 +684,10 @@ void PennChord::ProcessLeaveS(PennChordMessage message, Ipv4Address sourceAddres
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newPredecessorNum))), m_addressNodeMap);
 
   pthread_mutex_lock(&lock);
-  predecessorNumber = newPredecessorNum; //Checks for case where you are now only node in ring
-  predecessorHash = hashOfNode; //Checks for case where you are now only node in ring
-  predecessorIP = m_nodeAddressMap.at(std::stoi(predecessorNumber));
-  if (predecessorNumber == currNumber) {
-    isSingleton = true;
-  }
+  predecessorNumber = (newPredecessorNum == currNumber) ? "-1" : newPredecessorNum; //Checks for case where you are now only node in ring
+  predecessorHash = (newPredecessorNum == currNumber) ? -1 : hashOfNode; //Checks for case where you are now only node in ring
+  predecessorIP = (newPredecessorNum == currNumber) ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(predecessorNumber));
+  
   pthread_mutex_unlock(&lock);
 
 }
