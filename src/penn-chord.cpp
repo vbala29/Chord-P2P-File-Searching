@@ -667,10 +667,10 @@ void PennChord::ProcessLeaveP(PennChordMessage message, Ipv4Address sourceAddres
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newSuccessorNum))), m_addressNodeMap);
   
   pthread_mutex_lock(&lock);
-  successorNumber = (newSuccessorNum == currNumber) || (predecessorNumber == "-1") ? "-1" : newSuccessorNum; //Checks for case where you are now only node in ring
-  successorHash = (newSuccessorNum == currNumber) || (predecessorNumber == "-1") ? -1 : hashOfNode; //Checks for case where you are now only node in ring
-  successorIP = (newSuccessorNum == currNumber) || (predecessorNumber == "-1") ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(successorNumber)); 
-  if (successorNumber == "-1") {
+  successorNumber = newSuccessorNum; //Checks for case where you are now only node in ring
+  successorHash =  hashOfNode; //Checks for case where you are now only node in ring
+  successorIP = m_nodeAddressMap.at(std::stoi(successorNumber)); 
+  if (successorNumber == currNumber) {
     isSingleton = true;
   }
   pthread_mutex_unlock(&lock);
@@ -684,10 +684,10 @@ void PennChord::ProcessLeaveS(PennChordMessage message, Ipv4Address sourceAddres
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newPredecessorNum))), m_addressNodeMap);
 
   pthread_mutex_lock(&lock);
-  predecessorNumber = (newPredecessorNum == currNumber) || (successorNumber == "-1") ? "-1" : newPredecessorNum; //Checks for case where you are now only node in ring
-  predecessorHash = (newPredecessorNum == currNumber) || (successorNumber == "-1") ? -1 : hashOfNode; //Checks for case where you are now only node in ring
-  predecessorIP = (newPredecessorNum == currNumber) || (successorNumber == "-1") ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(predecessorNumber));
-  if (predecessorNumber == "-1") {
+  predecessorNumber = newPredecessorNum; //Checks for case where you are now only node in ring
+  predecessorHash = hashOfNode; //Checks for case where you are now only node in ring
+  predecessorIP = m_nodeAddressMap.at(std::stoi(predecessorNumber));
+  if (predecessorNumber == currNumber) {
     isSingleton = true;
   }
   pthread_mutex_unlock(&lock);
