@@ -666,6 +666,7 @@ void PennChord::ProcessLeaveP(PennChordMessage message, Ipv4Address sourceAddres
   std::string newSuccessorNum = message.GetLeaveP().leavePMessage;
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newSuccessorNum))), m_addressNodeMap);
   
+  std::cerr << "in here: " << newSuccessorNum << ", " << predecessorNumber << ", " << successorNumber << std::endl;
   pthread_mutex_lock(&lock);
   successorNumber = (newSuccessorNum == currNumber) || (predecessorNumber == "-1") ? "-1" : newSuccessorNum; //Checks for case where you are now only node in ring
   successorHash = (newSuccessorNum == currNumber) || (predecessorNumber == "-1") ? -1 : hashOfNode; //Checks for case where you are now only node in ring
