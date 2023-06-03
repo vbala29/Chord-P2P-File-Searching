@@ -524,7 +524,7 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
     successorNumber = v.at(1); //The successor of the predecessor is the successor of our node now.
     successorIP = m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(successorNumber))); 
     successorHash = PennKeyHelper::CreateShaKey(successorIP, m_addressNodeMap);
-   if (1) fprintf(stderr, "\n Node %s received tryingToJoin response with successor as %s \n", g_nodeId.c_str(), successorNumber.c_str());
+   if (DEBUG) fprintf(stderr, "\n Node %s received tryingToJoin response with successor as %s \n", g_nodeId.c_str(), successorNumber.c_str());
 
     tryingToJoin = false; 
     inRing = true;

@@ -16,6 +16,7 @@ int main(int argc, char** argv) {
 
     PennChord pc;
 
+    //These maps are used to contain the IP addresses of each POSSIBLE node in the ring.
     std::map<uint32_t, Ipv4Address> m_nodeAddressMap = {
         {1, Ipv4Address(192, 168, 86, 216)},
         {2, Ipv4Address(192, 168, 86, 230)},
