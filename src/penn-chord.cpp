@@ -667,9 +667,9 @@ void PennChord::ProcessLeaveP(PennChordMessage message, Ipv4Address sourceAddres
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newSuccessorNum))), m_addressNodeMap);
   
   pthread_mutex_lock(&lock);
-  successorNumber = newSuccessorNum == predecessorNumber ? "-1" : newSuccessorNum; //Checks for case where you are now only node in ring
-  successorHash = newSuccessorNum == predecessorNumber ? -1 : hashOfNode; //Checks for case where you are now only node in ring
-  successorIP = newSuccessorNum == predecessorNumber ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(successorNumber)); 
+  successorNumber = (newSuccessorNum == predecessorNumber) || (predecessorNumber == "-1") ? "-1" : newSuccessorNum; //Checks for case where you are now only node in ring
+  successorHash = (newSuccessorNum == predecessorNumber) | (predecessorNumber == "-1") ? -1 : hashOfNode; //Checks for case where you are now only node in ring
+  successorIP = (newSuccessorNum == predecessorNumber) | (predecessorNumber == "-1") ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(successorNumber)); 
   pthread_mutex_unlock(&lock);
 }
 
@@ -680,9 +680,9 @@ void PennChord::ProcessLeaveS(PennChordMessage message, Ipv4Address sourceAddres
   uint32_t hashOfNode = PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(newPredecessorNum))), m_addressNodeMap);
   
   pthread_mutex_lock(&lock);
-  predecessorNumber = newPredecessorNum == successorNumber ? "-1" : newPredecessorNum; //Checks for case where you are now only node in ring
-  predecessorHash = newPredecessorNum == successorNumber ? -1 : hashOfNode; //Checks for case where you are now only node in ring
-  predecessorIP = newPredecessorNum == successorNumber ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(predecessorNumber));
+  predecessorNumber = (newPredecessorNum == successorNumber) || (successorNumber == "-1") ? "-1" : newPredecessorNum; //Checks for case where you are now only node in ring
+  predecessorHash = (newPredecessorNum == successorNumber) || (successorNumber == "-1") ? -1 : hashOfNode; //Checks for case where you are now only node in ring
+  predecessorIP = (newPredecessorNum == successorNumber) || (successorNumber == "-1") ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(predecessorNumber));
   pthread_mutex_unlock(&lock);
 }
 
