@@ -311,7 +311,7 @@ void
 PennSearch::RecvMessage (PennSearchMessage message, Ipv4Address sourceAddress)
 {
   uint16_t sourcePort = m_appPort;
-  std::cout << "PennSearch Received message of type " << message.GetMessageType() << ", from: " << sourceAddress.Ipv4ToString() << std::endl << std::flush;
+ // std::cout << "PennSearch Received message of type " << message.GetMessageType() << ", from: " << sourceAddress.Ipv4ToString() << std::endl << std::flush;
 
   switch (message.GetMessageType ())
     {

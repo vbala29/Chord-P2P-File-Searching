@@ -574,14 +574,8 @@ void PennChord::ProcessFindPredReq(PennChordMessage message, Ipv4Address sourceA
   }
 
 
-  std::cerr << "HEREE: " << v.at(0) << std::endl;
-  for (auto& s :  v) {
-    std::cerr << s << std::endl;
-  }
   int requesterNode = std::stoi(v.at(0));
-    std::cerr << "HEREE2" << std::endl;
   uint32_t hashOfNode = strcmp(v.at(2).c_str(), NOT_HASHED_FIELD) == 0 ? PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(v.at(1)))), m_addressNodeMap) : static_cast<uint32_t>(std::stoul(v.at(1))); //
-   std::cerr << "HEREE1 " << std::endl;
   if (DEBUG) fprintf(stderr, "\tSuccHash: %u, CurrHash: %u, targHash: %u\n", successorHash, currHash, hashOfNode);
 
   // you're at the final node (send response back to original requester)
@@ -766,7 +760,7 @@ void
 PennChord::RecvMessage (PennChordMessage message, Ipv4Address sourceAddress)
 {
   uint16_t sourcePort = m_appPort; //Not actually used by any of the methods below
-  std::cout << "PennChord Received message of type " << message.GetMessageType() << ", from: " << sourceAddress.Ipv4ToString() << std::endl << std::flush;
+ // std::cout << "PennChord Received message of type " << message.GetMessageType() << ", from: " << sourceAddress.Ipv4ToString() << std::endl << std::flush;
 
   switch (message.GetMessageType ())
     {
