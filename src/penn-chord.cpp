@@ -669,7 +669,7 @@ void PennChord::ProcessLeaveP(PennChordMessage message, Ipv4Address sourceAddres
   pthread_mutex_lock(&lock);
   successorNumber = newSuccessorNum == predecessorNumber ? "-1" : newSuccessorNum; //Checks for case where you are now only node in ring
   successorHash = newSuccessorNum == predecessorNumber ? -1 : hashOfNode; //Checks for case where you are now only node in ring
-  successorIP = m_nodeAddressMap.at(std::stoi(successorNumber)); 
+  successorIP = newSuccessorNum == predecessorNumber ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(successorNumber)); 
   pthread_mutex_unlock(&lock);
 }
 
@@ -682,7 +682,7 @@ void PennChord::ProcessLeaveS(PennChordMessage message, Ipv4Address sourceAddres
   pthread_mutex_lock(&lock);
   predecessorNumber = newPredecessorNum == successorNumber ? "-1" : newPredecessorNum; //Checks for case where you are now only node in ring
   predecessorHash = newPredecessorNum == successorNumber ? -1 : hashOfNode; //Checks for case where you are now only node in ring
-  predecessorIP = m_nodeAddressMap.at(std::stoi(predecessorNumber));
+  predecessorIP = newPredecessorNum == successorNumber ? Ipv4Address(0) : m_nodeAddressMap.at(std::stoi(predecessorNumber));
   pthread_mutex_unlock(&lock);
 }
 
