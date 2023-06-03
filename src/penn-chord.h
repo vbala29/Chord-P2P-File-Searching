@@ -62,7 +62,8 @@ class PennChord : public PennApplication
     PennChord ();
     ~PennChord ();
     std::map<std::string, pthread_t> StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId);
-
+    virtual void StopApplication (void);
+    
     void RecvMessage (PennChordMessage message, Ipv4Address sourceAddress);
     void ProcessPingReq (PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void ProcessPingRsp (PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
@@ -94,7 +95,6 @@ class PennChord : public PennApplication
 
     
   private:
-    virtual void StopApplication (void);
 
     //Commands
     void RingState();

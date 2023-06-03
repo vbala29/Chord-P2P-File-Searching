@@ -70,6 +70,7 @@ void* CommandLineThread(void* args) {
     }
     
     if (tokens.at(0) == "QUIT") {
+      static_cast<PennChord*>(args)->StopApplication();
       exit(0); //End program
     }
 
@@ -256,6 +257,8 @@ PennChord::ProcessCommand (std::vector<std::string> tokens)
     }
   } else if (command == "LEAVE") {
     Leave();
+    StopApplication();
+    exit(0);
   } else if (command == "RINGSTATE") {
     RingState();
   } else {

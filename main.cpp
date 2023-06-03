@@ -34,8 +34,4 @@ int main(int argc, char** argv) {
     pc.StartApplication(m_nodeAddressMap, m_addressNodeMap, Ipv4Address(std::stoi(argv[1])), argv[2]);
 
     while(1);
-
-    // for (std::pair<std::string, pthread_t> p: threadMap) {
-    //     pthread_cancel(p.second);
-    // }
 }
