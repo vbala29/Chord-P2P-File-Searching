@@ -259,7 +259,7 @@ PennChord::ProcessCommand (std::vector<std::string> tokens)
     Leave();
     StopApplication();
     std::cerr << "Leaving..." << std::endl;
-    sleep(3); //Time for other clients to realize the leave before ending TCP connection
+    sleep(5); //Time for other clients to realize the leave before ending TCP connection
     exit(0);
   } else if (command == "RINGSTATE") {
     RingState();

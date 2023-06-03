@@ -194,6 +194,8 @@ PennSearch::ProcessCommand (std::vector<std::string> tokens)
     }
 
     ParseSearch(tokens);
+  } else if (command == "PrintIvList") {
+    PrintInvertedLists();
   } else {
     std::cerr << "Invalid command" << std::endl << std::flush;
   }
@@ -558,7 +560,7 @@ PennSearch::HandleRehashKeys (Ipv4Address destAddress, std::string message)
         msg += p.first;
         msg += "," + s;
 
-        SEARCH_LOG("Publish<" << p.first << ", " << s << ">");
+        SEARCH_LOG("PublishRehash<" << p.first << ", " << s << ">");
         PennSearchMessage publish = PennSearchMessage(PennSearchMessage::MessageType::PUBLISH);
         publish.SetPublish(msg);
 
