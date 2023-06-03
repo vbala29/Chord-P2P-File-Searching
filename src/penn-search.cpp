@@ -136,6 +136,7 @@ PennSearch::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, 
   m_chord->SetRehashKeysCallback(&PennSearch::HandleRehashKeys);
 
   m_chord->SetModuleName ("CHORD");
+  SetModuleName("PENN-SEARCH");
 
   SetSearchVerbose(true);
   SetErrorVerbose(true);
