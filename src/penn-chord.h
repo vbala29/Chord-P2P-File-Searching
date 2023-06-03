@@ -32,7 +32,7 @@
 #include "penn-chord-message.h"
 #include "penn-key-helper.h"
 #include "transmit.h"
-
+#include "penn-search.h"
 
 #include <math.h>
 #include <map>
@@ -50,11 +50,12 @@
 #define SEARCH_QUERY "1"
 #define PUBLISH_QUERY "2"
 
+#define CHORD_APP_PORT 3000
 
 class PennChord : public PennApplication
 {
   public:
-    typedef void (*Callback) (Ipv4Address, std::string);
+    typedef void (PennSearch::*Callback) (Ipv4Address, std::string);
 
     PennChord ();
     ~PennChord ();
@@ -86,6 +87,8 @@ class PennChord : public PennApplication
   bool makingSearchQuery = false;
   uint32_t totalLookups = 0;
   uint32_t totalHops = 0;
+  
+  PennSearch ps;
 
     
   private:

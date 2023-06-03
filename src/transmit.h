@@ -8,6 +8,7 @@
 #define TRANSMIT_H
 
 #include "penn-chord-message.h"
+#include "penn-search-message.h"
 #include "ipv4.hpp"
 #include "BufferV2.h"
 
@@ -19,5 +20,6 @@
 #include <iostream>
 
 void sendTo(PennChordMessage message, int port, Ipv4Address ip);
+void sendTo(PennSearchMessage message, int port, Ipv4Address ip);
 
 #endif

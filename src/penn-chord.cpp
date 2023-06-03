@@ -29,7 +29,7 @@
 #define DEBUG 0
 
 
-PennChord::PennChord ()
+PennChord::PennChord () : ps{this}
 {
 
 }
@@ -74,52 +74,19 @@ void* CommandLineThread(void* args) {
     }
 
     std::cout << std::endl << "Please wait..." << std::endl << std::flush;
-    static_cast<PennChord*>(args)->ProcessCommand(tokens);
+    if (tokens.at(0) == "SEARCH") {
+      //PENN SEARCH Commands
+      tokens.erase(tokens.begin());
+      static_cast<PennChord*>(args)->ps.ProcessCommand(tokens);
+    } else {
+      //PENN CHORD Commands
+      static_cast<PennChord*>(args)->ProcessCommand(tokens);
+    }
     std::cout << "Command Executed" << std::endl << std::endl << std::flush;
   }
   return NULL;
 }
 
-
-/** https://stackoverflow.com/questions/15653695/how-to-convert-ip-address-in-char-to-uint32-t-in-c
- * Convert human readable IPv4 address to UINT32
- * @param pDottedQuad   Input C string e.g. "192.168.0.1"
- * @param pIpAddr       Output IP address as UINT32
- * return 1 on success, else 0
- */
-int ipStringToNumber (const char*       pDottedQuad,
-                              unsigned int *    pIpAddr)
-{
-   unsigned int            byte3;
-   unsigned int            byte2;
-   unsigned int            byte1;
-   unsigned int            byte0;
-   char              dummyString[2];
-
-   /* The dummy string with specifier %1s searches for a non-whitespace char
-    * after the last number. If it is found, the result of sscanf will be 5
-    * instead of 4, indicating an erroneous format of the ip-address.
-    */
-   if (sscanf (pDottedQuad, "%u.%u.%u.%u%1s",
-                  &byte3, &byte2, &byte1, &byte0, dummyString) == 4)
-   {
-      if (    (byte3 < 256)
-           && (byte2 < 256)
-           && (byte1 < 256)
-           && (byte0 < 256)
-         )
-      {
-         *pIpAddr  =   (byte3 << 24)
-                     + (byte2 << 16)
-                     + (byte1 << 8)
-                     +  byte0;
-
-         return 1;
-      }
-   }
-
-   return 0;
-}
 
 void* ReceiveThread(void* args) {
   int sockfd, newsockfd, portno;
@@ -215,7 +182,7 @@ PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, s
   SetAddressNodeMap(m_addressNodeMap);
   SetLocalAddress(m_local);
   g_nodeId = nodeId;
-  m_appPort = 3000;
+  m_appPort = CHORD_APP_PORT;
 
   std::cout << "PennChord::StartApplication()!!!!!" << std::endl;
   std::cout << "Node: " << g_nodeId << ", Hash: " << PennKeyHelper::KeyToHexString(PennKeyHelper::CreateShaKey(m_nodeAddressMap.at(static_cast<uint32_t>(std::stoi(g_nodeId))), m_addressNodeMap)) << std::endl;
@@ -243,11 +210,21 @@ PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, s
   pthread_create(&receive_thread, NULL, ReceiveThread, this);
   threadMap.insert({"receive_thread", receive_thread});
 
+  //Start up PennSearch 
+  std::map<std::string, pthread_t> m = ps.StartApplication();
+
+  //Append threads from PennSearch into threadMap
+  for(auto& p : m) {
+    threadMap.insert({p.first, p.second});
+  }
+
   return threadMap;
 }
 
 void
-PennChord::StopApplication (void) {};
+PennChord::StopApplication (void) {
+  ps.StopApplication();
+};
 
 void
 PennChord::ProcessCommand (std::vector<std::string> tokens)
@@ -460,7 +437,7 @@ void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddres
     predecessorHash = fromNodeHash;
     predecessorIP = m_nodeAddressMap.at(std::stoi(fromNode)); 
 
-    //m_rehashKeys(sourceAddress, ""); //parameters don't get used
+    (ps.*m_rehashKeys)(sourceAddress, ""); //parameters don't get used
 
     if (DEBUG) fprintf(stderr, "\n Node %s sent notify to node %s. In Range = %u, PredHash = %u , CurrHash = %u , FromHash = %u, SuccHash = %u, Updates to predecessor made! Node: %s, Predecessor: %s, Successor %s \n",
      fromNode.c_str(), g_nodeId.c_str(), inRange, predecessorHash, currHash, fromNodeHash, successorHash, g_nodeId.c_str(), predecessorNumber.c_str(), successorNumber.c_str());
@@ -530,11 +507,11 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
   if (pennPublishRequest) {
     // LookupResult<currentNodeKey, targetKey, originatorNodeNum, originatorNodeKey>
     // CHORD_LOG("LookupResult<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ", " << fromNode  << ", " << PennKeyHelper::CreateShaKey(fromNode) << ">");
-    m_publishFn(sourceAddress, findPredMessage);
+    (ps.*m_publishFn)(sourceAddress, findPredMessage);
     totalHops += std::stoi(v.at(5)); //Update hop count
   } else if (pennSearchRequest) {
     // CHORD_LOG("LookupResult<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ", " << fromNode  << ", " << PennKeyHelper::CreateShaKey(fromNode) << ">");
-    m_searchFn(sourceAddress, findPredMessage);
+    (ps.*m_searchFn)(sourceAddress, findPredMessage);
     totalHops += std::stoi(v.at(5)); //Update hop count
   } else if (tryingToJoin) {
 
@@ -710,7 +687,7 @@ void PennChord::ProcessLeaveS(PennChordMessage message, Ipv4Address sourceAddres
 void PennChord::Leave() {
 
   pthread_mutex_lock(&lock);
-  m_leaveFn(currIP, "");
+  (ps.*m_leaveFn)(currIP, "");
   // message to pred contain's current node's successor 
   inRing = false;
 
