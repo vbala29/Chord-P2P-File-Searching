@@ -215,7 +215,7 @@ PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, s
   threadMap.insert({"penn_chord_receive_thread", penn_chord_receive_thread});
 
   //Start up PennSearch 
-  std::map<std::string, pthread_t> m = ps->StartApplication();
+  std::map<std::string, pthread_t> m = ps->StartApplication(m_nodeAddressMap, m_addressNodeMap, m_local, nodeId);
 
   //Append threads from PennSearch into threadMap
   for(auto& p : m) {
