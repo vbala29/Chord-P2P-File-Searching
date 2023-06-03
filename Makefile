@@ -29,7 +29,7 @@ chord : $(CHORD_OBJS) $(UTIL_OBJS) $(OBJS)
 	$(CC) -o $@ $^
 
 all : util src chord
-	mv *.o ./bin
+	mv *.o ./bin/
 
 clean :
 	$(RM) ./bin/*
