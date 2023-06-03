@@ -84,7 +84,7 @@ class Ipv4Address {
  * @param pIpAddr       Output IP address as UINT32
  * return 1 on success, else 0
  */
-int ipStringToNumber (const char*       pDottedQuad,
+inline int ipStringToNumber (const char*       pDottedQuad,
                               unsigned int *    pIpAddr)
 {
    unsigned int            byte3;

@@ -31,7 +31,9 @@ class PennApplication : public PennLog
 public:
   PennApplication ();
   virtual ~PennApplication ();
-  virtual std::map<std::string, pthread_t> StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId) {};
+  virtual std::map<std::string, pthread_t> StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId) {
+    return std::map<std::string, pthread_t>();
+  };
 
   // Interface for PennApplication(s)
   virtual void ProcessCommand (std::vector<std::string> tokens) = 0;

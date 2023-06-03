@@ -29,14 +29,14 @@
 #define DEBUG 0
 
 
-PennChord::PennChord () : ps{this}
+PennChord::PennChord ()
 {
-
+  ps = new PennSearch(this);
 }
 
 PennChord::~PennChord ()
 {
-
+  delete ps;
 }
 
 //These aren't class methods as it makes it easier to use with pthread library if they're not.
@@ -77,7 +77,7 @@ void* CommandLineThread(void* args) {
     if (tokens.at(0) == "SEARCH") {
       //PENN SEARCH Commands
       tokens.erase(tokens.begin());
-      static_cast<PennChord*>(args)->ps.ProcessCommand(tokens);
+      static_cast<PennChord*>(args)->ps->ProcessCommand(tokens);
     } else {
       //PENN CHORD Commands
       static_cast<PennChord*>(args)->ProcessCommand(tokens);
@@ -88,7 +88,7 @@ void* CommandLineThread(void* args) {
 }
 
 
-void* ReceiveThread(void* args) {
+void* PennChordReceiveThread(void* args) {
   int sockfd, newsockfd, portno;
   socklen_t clilen;
   uint8_t buff[4096];
@@ -98,7 +98,7 @@ void* ReceiveThread(void* args) {
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
-    perror("ERROR opening socket in ReceiveThread()");
+    perror("ERROR opening socket in PennChordReceiveThread()");
     exit(1);
   }
 
@@ -119,7 +119,7 @@ void* ReceiveThread(void* args) {
   my_addr.sin_port = htons(portno);
 
   if (bind(sockfd, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
-    perror("ERROR on binding in ReceiveThread()");
+    perror("ERROR on binding in PennChordReceiveThread()");
     exit(1);
   }
 
@@ -135,14 +135,14 @@ void* ReceiveThread(void* args) {
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
     if (newsockfd < 0) {
       close(newsockfd);
-      perror("ERROR on accept in ReceiveThread()");
+      perror("ERROR on accept in PennChordReceiveThread()");
       continue;
     }
     
     // fprintf(stderr, "established TCP connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
     n = read(newsockfd, buff, 4095);
     if (n == -1) {
-      perror("Error on read() in ReceiveThread()");
+      perror("Error on read() in PennChordReceiveThread()");
       close(newsockfd);
       continue;
     }
@@ -206,12 +206,12 @@ PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, s
   pthread_create(&command_line_thread, NULL, CommandLineThread, this);
   threadMap.insert({"command_line_thread", command_line_thread});
 
-  pthread_t receive_thread;
-  pthread_create(&receive_thread, NULL, ReceiveThread, this);
-  threadMap.insert({"receive_thread", receive_thread});
+  pthread_t penn_chord_receive_thread;
+  pthread_create(&penn_chord_receive_thread, NULL, PennChordReceiveThread, this);
+  threadMap.insert({"penn_chord_receive_thread", penn_chord_receive_thread});
 
   //Start up PennSearch 
-  std::map<std::string, pthread_t> m = ps.StartApplication();
+  std::map<std::string, pthread_t> m = ps->StartApplication();
 
   //Append threads from PennSearch into threadMap
   for(auto& p : m) {
@@ -223,7 +223,7 @@ PennChord::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, s
 
 void
 PennChord::StopApplication (void) {
-  ps.StopApplication();
+  ps->StopApplication();
 };
 
 void
@@ -437,7 +437,7 @@ void PennChord::ProcessNotify(PennChordMessage message, Ipv4Address sourceAddres
     predecessorHash = fromNodeHash;
     predecessorIP = m_nodeAddressMap.at(std::stoi(fromNode)); 
 
-    (ps.*m_rehashKeys)(sourceAddress, ""); //parameters don't get used
+    (ps->*m_rehashKeys)(sourceAddress, ""); //parameters don't get used
 
     if (DEBUG) fprintf(stderr, "\n Node %s sent notify to node %s. In Range = %u, PredHash = %u , CurrHash = %u , FromHash = %u, SuccHash = %u, Updates to predecessor made! Node: %s, Predecessor: %s, Successor %s \n",
      fromNode.c_str(), g_nodeId.c_str(), inRange, predecessorHash, currHash, fromNodeHash, successorHash, g_nodeId.c_str(), predecessorNumber.c_str(), successorNumber.c_str());
@@ -507,11 +507,11 @@ void PennChord::ProcessFindPredRsp(PennChordMessage message, Ipv4Address sourceA
   if (pennPublishRequest) {
     // LookupResult<currentNodeKey, targetKey, originatorNodeNum, originatorNodeKey>
     // CHORD_LOG("LookupResult<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ", " << fromNode  << ", " << PennKeyHelper::CreateShaKey(fromNode) << ">");
-    (ps.*m_publishFn)(sourceAddress, findPredMessage);
+    (ps->*m_publishFn)(sourceAddress, findPredMessage);
     totalHops += std::stoi(v.at(5)); //Update hop count
   } else if (pennSearchRequest) {
     // CHORD_LOG("LookupResult<" << std::to_string(currHash) << ", " << std::to_string(hashOfNode) << ", " << fromNode  << ", " << PennKeyHelper::CreateShaKey(fromNode) << ">");
-    (ps.*m_searchFn)(sourceAddress, findPredMessage);
+    (ps->*m_searchFn)(sourceAddress, findPredMessage);
     totalHops += std::stoi(v.at(5)); //Update hop count
   } else if (tryingToJoin) {
 
@@ -687,7 +687,7 @@ void PennChord::ProcessLeaveS(PennChordMessage message, Ipv4Address sourceAddres
 void PennChord::Leave() {
 
   pthread_mutex_lock(&lock);
-  (ps.*m_leaveFn)(currIP, "");
+  (ps->*m_leaveFn)(currIP, "");
   // message to pred contain's current node's successor 
   inRing = false;
 

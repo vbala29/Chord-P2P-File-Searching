@@ -52,6 +52,8 @@
 
 #define CHORD_APP_PORT 3000
 
+class PennSearch;
+
 class PennChord : public PennApplication
 {
   public:
@@ -88,7 +90,7 @@ class PennChord : public PennApplication
   uint32_t totalLookups = 0;
   uint32_t totalHops = 0;
   
-  PennSearch ps;
+  PennSearch* ps;
 
     
   private:

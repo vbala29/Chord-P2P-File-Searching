@@ -20,9 +20,9 @@
 #define PENN_SEARCH_H
 
 #include "penn-application.h"
-#include "penn-chord.h"
 #include "penn-search-message.h"
 #include "transmit.h"
+#include "penn-chord.h"
 
 #include "ipv4.hpp"
 #include <map>
@@ -34,6 +34,7 @@
 
 #define SEARCH_APP_PORT 5000
 
+class PennChord;
 
 class PennSearch : public PennApplication
 {

@@ -24,7 +24,7 @@
 #define DEBUG 0
 #define TEMP_DEBUG 0
 
-void* ReceiveThread(void* args) {
+void* PennSearchReceiveThread(void* args) {
   int sockfd, newsockfd, portno;
   socklen_t clilen;
   uint8_t buff[4096];
@@ -34,7 +34,7 @@ void* ReceiveThread(void* args) {
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
-    perror("ERROR opening socket in ReceiveThread()");
+    perror("ERROR opening socket in PennSearchReceiveThread()");
     exit(1);
   }
 
@@ -55,7 +55,7 @@ void* ReceiveThread(void* args) {
   my_addr.sin_port = htons(portno);
 
   if (bind(sockfd, (struct sockaddr *) &my_addr, sizeof(my_addr)) < 0) {
-    perror("ERROR on binding in ReceiveThread()");
+    perror("ERROR on binding in PennSearchReceiveThread()");
     exit(1);
   }
 
@@ -71,14 +71,14 @@ void* ReceiveThread(void* args) {
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
     if (newsockfd < 0) {
       close(newsockfd);
-      perror("ERROR on accept in ReceiveThread()");
+      perror("ERROR on accept in PennSearchReceiveThread()");
       continue;
     }
     
     // fprintf(stderr, "established TCP connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
     n = read(newsockfd, buff, 4095);
     if (n == -1) {
-      perror("Error on read() in ReceiveThread()");
+      perror("Error on read() in PennSearchReceiveThread()");
       close(newsockfd);
       continue;
     }
@@ -132,9 +132,9 @@ PennSearch::StartApplication (void)
 
   std::map<std::string, pthread_t> threadMap;
 
-  pthread_t receive_thread;
-  pthread_create(&receive_thread, NULL, ReceiveThread, this);
-  threadMap.insert({"receive_thread", receive_thread});
+  pthread_t penn_search_receive_thread;
+  pthread_create(&penn_search_receive_thread, NULL, PennSearchReceiveThread, this);
+  threadMap.insert({"penn_search_receive_thread", penn_search_receive_thread});
 
   return threadMap;
 }
