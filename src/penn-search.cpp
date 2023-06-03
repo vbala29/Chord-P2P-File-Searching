@@ -94,13 +94,13 @@ void* PennSearchReceiveThread(void* args) {
     // } 
     // std::cout << std::endl << std::flush;
 
-    PennChordMessage pcm;
-    pcm.Deserialize(b);
+    PennSearchMessage psm;
+    psm.Deserialize(b);
 
     //Add in thread pool once this actually works TODO
     unsigned int* addrPtr = (unsigned int*) malloc(sizeof(unsigned int));
     ipStringToNumber(inet_ntoa(cli_addr.sin_addr), addrPtr);
-    static_cast<PennChord*>(args)->RecvMessage(pcm, Ipv4Address(static_cast<uint32_t>(*addrPtr)));
+    static_cast<PennSearch*>(args)->RecvMessage(psm, Ipv4Address(static_cast<uint32_t>(*addrPtr)));
   }
 
   return NULL;
@@ -134,6 +134,8 @@ PennSearch::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, 
   m_chord->SetSearchCallback(&PennSearch::HandleSearch);
   m_chord->SetLeaveCallback(&PennSearch::TransferFiles);
   m_chord->SetRehashKeysCallback(&PennSearch::HandleRehashKeys);
+
+  m_chord->SetModuleName ("CHORD");
 
   SetSearchVerbose(true);
   SetErrorVerbose(true);
@@ -309,6 +311,7 @@ void
 PennSearch::RecvMessage (PennSearchMessage message, Ipv4Address sourceAddress)
 {
   uint16_t sourcePort = m_appPort;
+  std::cout << "PennSearch Received message of type " << message.GetMessageType() << ", from: " << sourceAddress.Ipv4ToString() << std::endl << std::flush;
 
   switch (message.GetMessageType ())
     {
