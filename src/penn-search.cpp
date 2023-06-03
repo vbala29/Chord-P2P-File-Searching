@@ -48,7 +48,7 @@ void* PennSearchReceiveThread(void* args) {
   }
 
   bzero((char *) &my_addr, sizeof(my_addr));
-  portno = static_cast<PennChord*>(args)->GetAppPort();
+  portno = SEARCH_APP_PORT;
 
   my_addr.sin_family = AF_INET;
   my_addr.sin_addr.s_addr = INADDR_ANY; //monitor all interfaces (Aka IPs this host associated with)
