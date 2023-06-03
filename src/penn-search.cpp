@@ -552,7 +552,10 @@ PennSearch::HandleRehashKeys (Ipv4Address destAddress, std::string message)
   std::vector<std::string> toDelete;
   for (auto p : m_storedFiles) {
     uint32_t hash = PennKeyHelper::CreateShaKey(p.first);
-    if (hash < m_chord->getPredecessorHash()) {
+    uint32_t currHash = PennKeyHelper::CreateShaKey(g_nodeId);
+    uint32_t predecessorHash = m_chord->getPredecessorHash();
+
+    if (!((currHash > predecessorHash && hash > predecessorHash && hash <= currHash) || (currHash <= predecessorHash && (hash > predecessorHash || hash <= currHash)))) {
       toDelete.push_back(p.first);
     
       for (std::string s : p.second) {
