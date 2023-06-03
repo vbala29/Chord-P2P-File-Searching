@@ -1,4 +1,4 @@
-#include "BufferV2.h"
+#include "../include/BufferV2.h"
 
 BufferV2::BufferV2() : size(0) {
     m_buffer = new uint8_t[BUFFER_SIZE];

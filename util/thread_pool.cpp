@@ -4,8 +4,7 @@
  * Copyright © 2023 Vikram Bala
  */
 
-#include "thread_pool.hpp"
-#include "../src/chord_job.hpp"
+#include "../include/thread_pool.hpp"
 #include <unistd.h>
 
 void initMutexAndCondAttr(pthread_mutex_t& mutex, pthread_mutexattr_t& attr, pthread_cond_t& cond_var) {
@@ -121,7 +120,7 @@ ThreadPool<T>::ThreadPool(uint16_t num_workers, workerFunction wf) {
             exit(1);
     }
 
-    pthread_create(assigner_thread, NULL, assigner_function<ChordJob>, this);
+    pthread_create(assigner_thread, NULL, assigner_function<T>, this);
 
     fprintf(stderr, "Finished ThreadPool() \n");
 }
@@ -224,5 +223,3 @@ void* ThreadPool<T>::worker_wrapper(void* args) {
     }
     return NULL;
 }
-
-template class ThreadPool<ChordJob>;

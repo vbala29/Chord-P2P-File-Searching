@@ -217,41 +217,41 @@ class PennChordMessage
 
 
     /**
-     * \returns PingRsp Struct
+     * \returns Notify Struct
      */
     Notify GetNotify ();
     /**
-     *  \brief Sets PingRsp message params
+     *  \brief Sets Notify message params
      *  \param message Payload String
      */
     void SetNotify (std::string message);
 
     /**
-     * \returns PingRsp Struct
+     * \returns LeaveP Struct
      */
     LeaveP GetLeaveP ();
     /**
-     *  \brief Sets PingRsp message params
+     *  \brief Sets LeaveP message params
      *  \param message Payload String
      */
     void SetLeaveP (std::string message);
 
     /**
-     * \returns PingRsp Struct
+     * \returns LeaveS Struct
      */
     LeaveS GetLeaveS ();
     /**
-     *  \brief Sets PingRsp message params
+     *  \brief Sets LeaveS message params
      *  \param message Payload String
      */
     void SetLeaveS (std::string message);
 
     /**
-     * \returns PingRsp Struct
+     * \returns RingState Struct
      */
     RingState GetRingState ();
     /**
-     *  \brief Sets PingRsp message params
+     *  \brief Sets RingState message params
      *  \param message Payload String
      */
     void SetRingState (std::string message);

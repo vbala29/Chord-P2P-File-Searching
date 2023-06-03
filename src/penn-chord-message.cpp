@@ -20,8 +20,8 @@
  * Copyright © 2023 Vikram Bala
  */
 
-#include "penn-chord-message.h"
-#include "assert.h"
+#include "../include/penn-chord-message.h"
+#include "../include/assert.h"
 
 PennChordMessage::PennChordMessage ()
 {

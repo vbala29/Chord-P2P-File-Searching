@@ -4,7 +4,7 @@
 #include <string>
 #include <pthread.h>
 #include <map>
-#include "src/penn-chord.h"
+#include "include/penn-chord.h"
 
 
 // First arg is Ipv4 of this node, 2nd arg is its node Id

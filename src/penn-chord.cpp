@@ -22,8 +22,8 @@
  * Copyright © 2023 Vikram Bala
  */
 
-#include "penn-chord.h"
-#include "../lib/thread_pool.hpp"
+#include "../include/penn-chord.h"
+#include "../include/thread_pool.hpp"
 
 
 #define DEBUG 0

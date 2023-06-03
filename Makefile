@@ -10,10 +10,10 @@ CC = clang++ -lpthread -lssl -lcrypto -std=c++14
 
 CFLAGS = -Wall -Werror -g
 
-TP_SRCS = $(wildcard ./lib/*.cpp)
-TP_OBJS = $(TP_SRCS:.c=.o)
+UTIL_SRCS = $(wildcard ./util/*.cpp)
+UTIL_OBJS = $(UTIL_SRCS:.c=.o)
 
-tp : $(TP_OBJS)
+util : $(UTIL_OBJS)
 	$(CC) -c $^
 
 CHORD_SRCS = $(wildcard ./src/*.cpp)
@@ -25,10 +25,10 @@ src : $(CHORD_OBJS) $(OBJS)
 SRCS = $(wildcard *.cpp)
 OBJS = $(SRCS:.c=.o)
 
-chord : $(CHORD_OBJS) $(TP_OBJS) $(OBJS)
+chord : $(CHORD_OBJS) $(UTIL_OBJS) $(OBJS)
 	$(CC) -o $@ $^
 
-all : tp src chord
+all : util src chord
 
 clean :
 	$(RM) ./bin/*

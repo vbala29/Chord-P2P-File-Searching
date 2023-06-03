@@ -65,8 +65,6 @@ class PennChord : public PennApplication
     virtual void StopApplication (void);
     
     void RecvMessage (PennChordMessage message, Ipv4Address sourceAddress);
-    void ProcessPingReq (PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
-    void ProcessPingRsp (PennChordMessage message, Ipv4Address sourceAddress, uint16_t sourcePort);
     void StopChord ();
 
     // Callback with Application Layer (add more when required)

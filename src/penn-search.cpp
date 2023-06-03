@@ -17,8 +17,8 @@
  */
 
 
-#include "penn-search.h"
-#include "penn-key-helper.h"
+#include "../include/penn-search.h"
+#include "../include/penn-key-helper.h"
 
 
 #define DEBUG 0

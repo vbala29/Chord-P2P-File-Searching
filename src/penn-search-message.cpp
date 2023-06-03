@@ -14,8 +14,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "penn-search-message.h"
-#include "penn-log.h"
+#include "../include/penn-search-message.h"
+#include "../include/penn-log.h"
 
 
 PennSearchMessage::PennSearchMessage ()
