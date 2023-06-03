@@ -21,14 +21,14 @@ int main(int argc, char** argv) {
         {1, Ipv4Address(192, 168, 86, 216)},
         {2, Ipv4Address(192, 168, 86, 230)},
         {3, Ipv4Address(192, 168, 86, 84)},
-        {4, Ipv4Address(127, 0, 0, 4)},
+        {4, Ipv4Address(192, 168, 86, 232)},
     };
 
     std::map<Ipv4Address, uint32_t> m_addressNodeMap = {
         {Ipv4Address(192, 168, 86, 216), 1},
         {Ipv4Address(192, 168, 86, 230), 2},
         {Ipv4Address(192, 168, 86, 84), 3},
-        {Ipv4Address(127, 0, 0, 4), 4},
+        {Ipv4Address(192, 168, 86, 232), 4},
     };
 
     std::cout << "ARGV1: " << std::string(argv[1]) << ", ARGV2: " << std::string(argv[2]) << std::endl;
