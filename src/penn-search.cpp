@@ -110,7 +110,6 @@ void* PennSearchReceiveThread(void* args) {
 PennSearch::PennSearch (PennChord* pc)
 {
   m_chord = pc;
-  m_appPort = SEARCH_APP_PORT;
 }
 
 PennSearch::~PennSearch ()
@@ -120,15 +119,25 @@ PennSearch::~PennSearch ()
 
 
 std::map<std::string, pthread_t>
-PennSearch::StartApplication (void)
+PennSearch::StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId)
 {
   std::cout << "PennSearch::StartApplication()!!!!!" << std::endl;
+
+  SetNodeAddressMap(m_nodeAddressMap);
+  SetAddressNodeMap(m_addressNodeMap);
+  SetLocalAddress(m_local);
+  g_nodeId = nodeId;
+  m_appPort = SEARCH_APP_PORT;
 
   // Configure Callbacks with Chord
   m_chord->SetPublishCallback((&PennSearch::HandlePublish));
   m_chord->SetSearchCallback(&PennSearch::HandleSearch);
   m_chord->SetLeaveCallback(&PennSearch::TransferFiles);
   m_chord->SetRehashKeysCallback(&PennSearch::HandleRehashKeys);
+
+  SetSearchVerbose(true);
+  SetErrorVerbose(true);
+  SetChordVerbose(true);
 
   std::map<std::string, pthread_t> threadMap;
 
@@ -165,7 +174,7 @@ PennSearch::ProcessCommand (std::vector<std::string> tokens)
     // std::cout << std::endl << std::flush;
 
     if (tokens.size() != 2) {
-      ERROR_LOG ("Insufficient PUBLISH params..."); 
+      std::cerr << "Insufficient Parameters for PUBLISH!" << std::endl << std::flush;
     }
 
     ParsePublish(tokens.at(1)); //Pass in file name
@@ -179,10 +188,12 @@ PennSearch::ProcessCommand (std::vector<std::string> tokens)
     // std::cout << std::endl << std::flush;
 
     if (tokens.size() < 3) {
-      ERROR_LOG ("Insufficient SEARCH params..."); 
+      std::cerr << "Insufficient Parameters for SEARCH!" << std::endl << std::flush;
     }
 
     ParseSearch(tokens);
+  } else {
+    std::cerr << "Invalid command" << std::endl << std::flush;
   }
   
 }
@@ -212,7 +223,7 @@ void PennSearch::TransferFiles(Ipv4Address destAddress, std::string message) {
 
 void PennSearch::ParsePublish(std::string filename) {
 
-  // std::cerr << "In (ParsePublish), file = " << filename << std::endl;
+  std::cerr << "In (ParsePublish), file = " << filename << std::endl;
   std::ifstream f(filename, std::ios_base::in);
 
   if (f.fail()) {
@@ -239,7 +250,9 @@ void PennSearch::ParsePublish(std::string filename) {
         
         if (invertedLists.find(tok) != invertedLists.end()) {
           //Already have a vector in map
+          
           invertedLists.at(tok).push_back(document);
+          
         } else {
           std::vector<std::string> v;
           v.push_back(document);
@@ -619,7 +632,6 @@ PennSearch::HandlePublish (Ipv4Address destAddress, std::string message)
       std::getline(ss, substr, ',');
       v.push_back(substr);
   }
-
   std::string nodeToSendTo = v.at(1);
   std::string queryHash {}; //The original query to PennChord::lookup()
 
@@ -633,7 +645,6 @@ PennSearch::HandlePublish (Ipv4Address destAddress, std::string message)
 
   auto p = hashInvertedLists.at(static_cast<uint32_t>(std::stoul(queryHash)));
 
-
   std::string msg = p.first;
   for (std::string s : p.second) {
     msg += ",";
@@ -642,6 +653,7 @@ PennSearch::HandlePublish (Ipv4Address destAddress, std::string message)
   
   // parsing of the message 
   PennSearchMessage publish = PennSearchMessage(PennSearchMessage::MessageType::PUBLISH);
+
   publish.SetPublish(msg);
   sendTo (publish, m_appPort, m_nodeAddressMap.at(std::stoi(nodeToSendTo)));
 }

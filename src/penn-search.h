@@ -41,7 +41,7 @@ class PennSearch : public PennApplication
   public:
     PennSearch (PennChord* pc);
     virtual ~PennSearch ();
-    virtual std::map<std::string, pthread_t> StartApplication (void);
+    virtual std::map<std::string, pthread_t> StartApplication (std::map<uint32_t, Ipv4Address> m_nodeAddressMap, std::map<Ipv4Address, uint32_t> m_addressNodeMap,  Ipv4Address m_local, std::string nodeId);
     virtual void StopApplication (void);
 
     void RecvMessage (PennSearchMessage message, Ipv4Address sourceAddress);

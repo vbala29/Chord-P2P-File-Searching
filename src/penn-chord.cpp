@@ -76,6 +76,10 @@ void* CommandLineThread(void* args) {
     std::cout << std::endl << "Please wait..." << std::endl << std::flush;
     if (tokens.at(0) == "SEARCH") {
       //PENN SEARCH Commands
+      if (tokens.size() < 2) {
+        std::cerr << "Insufficient Parameters for PENN SEARCH!" << std::endl << std::flush;
+        continue;
+      }
       tokens.erase(tokens.begin());
       static_cast<PennChord*>(args)->ps->ProcessCommand(tokens);
     } else {
@@ -240,7 +244,7 @@ PennChord::ProcessCommand (std::vector<std::string> tokens)
   
   if (command == "JOIN") {
     if (tokens.size() < 2) {
-      ERROR_LOG("Insufficient Parameters for JOIN!");
+      std::cerr << "Insufficient Parameters for JOIN!" << std::endl << std::flush;
       return;
     }
 
@@ -254,6 +258,8 @@ PennChord::ProcessCommand (std::vector<std::string> tokens)
     Leave();
   } else if (command == "RINGSTATE") {
     RingState();
+  } else {
+    std::cerr << "Invalid Command!" << std::endl << std::flush;
   }
 }
 
@@ -785,7 +791,7 @@ PennChord::RecvMessage (PennChordMessage message, Ipv4Address sourceAddress)
         ProcessStabilizeRsp(message, sourceAddress, sourcePort);
         break;
       default:
-        ERROR_LOG ("Unknown Message Type!");
+        std::cerr << "Unknown Message Type!" << std::endl << std::flush;
         break;
     }
 }
