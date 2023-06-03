@@ -68,11 +68,6 @@ void* CommandLineThread(void* args) {
       std::getline(ss, substr, ' ');
       tokens.push_back(substr);
     }
-    
-    if (tokens.at(0) == "QUIT") {
-      static_cast<PennChord*>(args)->StopApplication();
-      exit(0); //End program
-    }
 
     std::cout << std::endl << "Please wait..." << std::endl << std::flush;
     if (tokens.at(0) == "SEARCH") {
