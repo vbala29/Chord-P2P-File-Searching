@@ -32,7 +32,7 @@
 #include <list>
 #include <deque>
 
-#define SEARCH_APP_PORT 5000
+#define SEARCH_APP_PORT 3001
 
 class PennChord;
 
