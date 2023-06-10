@@ -4,7 +4,7 @@
 <b> Author:  </b> Vikram Bala <br>
 <b>Email: </b> vikrambala2002@gmail.com <br>
 <b>Code Repository: </b> [GitHub Link](https://github.com/vbala29/Chord-P2P-File-Sharing) <br>
-<b> Video Demo: </b> [Link] (https://drive.google.com/file/d/11L2ebeiGS6fNdVGmQE208krWLMUKk6f2/view?usp=sharing) <br>
+<b> Video Demo: </b> [Link](https://drive.google.com/file/d/11L2ebeiGS6fNdVGmQE208krWLMUKk6f2/view?usp=sharing) <br>
 
 <b> What This Is: </b> This project is a application (intended to run on Ubuntu or MacOS Ventura 13.1+) that implements the [Chord Distributed Hash Table Protocol](https://pdos.csail.mit.edu/papers/ton:chord/paper-ton.pdf), one of the four original DHT protocols, which won an ACM SIGCOMM award in 2011. <b>The application uses the Chord protocol to: 1. Allow users to join a network of other host computers with which they can share files. 2. Provide users with a P2P Document Search-Engine with which they can simply type in a search keyword, and then receive a list of all available documents in the network which match that keyword.</b> The Chord protocol provides (with high probability) that such information is retrieved with O(log N) nodes contacted in an N node network. The nature of this application is reminiscent of many P2P file sharing systems of the past such as [Napster](https://en.wikipedia.org/wiki/Napster) and [Gnutella](https://en.wikipedia.org/wiki/Gnutella), and those served as inspiration for this project. Note that this project doesn't provide the implementation for the actual sending of files between host machines; however, this is trivial to implement given the features that this project provides.
 
