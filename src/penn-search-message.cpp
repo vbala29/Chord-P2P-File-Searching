@@ -14,6 +14,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * Developer: Vikram Bala
+ * Contact: vikrambala2002@gmail.com
+ * Copyright © 2023 Vikram Bala
+ */
+
 #include "../include/penn-search-message.h"
 #include "../include/penn-log.h"
 

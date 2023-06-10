@@ -1,5 +1,10 @@
-# name of the program to build
 #
+# Developer: Vikram Bala
+# Contact: vikrambala2002@gmail.com
+# Copyright © 2023 Vikram Bala
+#
+
+# name of the program to build
 PROG=chord
 
 # Remove -DNDEBUG during development if assert(3) is used

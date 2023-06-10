@@ -1,3 +1,9 @@
+/**
+ * Developer: Vikram Bala
+ * Contact: vikrambala2002@gmail.com
+ * Copyright © 2023 Vikram Bala
+ */
+
 #ifndef BUFFERV2_HPP
 #define BUFFERV2_HPP
 
