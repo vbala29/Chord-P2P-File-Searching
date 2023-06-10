@@ -1,4 +1,5 @@
 # P2P File Searching System - Chord DHT Protocol
+![Chord_network](https://github.com/vbala29/Chord-P2P-File-Searching/assets/56012430/f02f7dc5-02bb-4e27-8f2a-35c1b899f9b8)
 
 <b> Author:  </b> Vikram Bala <br>
 <b>Email: </b> vikrambala2002@gmail.com <br>
@@ -13,4 +14,3 @@
 
 Chord Papers: https://pdos.csail.mit.edu/papers/ton:chord/paper-ton.pdf, https://pdos.csail.mit.edu/papers/chord:sigcomm01/chord_sigcomm.pdf
 
-![Chord_network](https://github.com/vbala29/Chord-P2P-File-Searching/assets/56012430/f02f7dc5-02bb-4e27-8f2a-35c1b899f9b8)
