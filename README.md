@@ -27,5 +27,5 @@ make all
 JOIN (to join the network of hosts) -> ```JOIN <Node number of node already in Chord ring that this node can contact to join the ring>``` <br><br>
 RINGSTATE (to have each host in the network print out their successor and predecessor in the Chord ring) -> ```RINGSTATE``` <br><br>
 LEAVE (to leave the network and transfer any files stored on this host to the remaining hosts in the network) -> ```LEAVE``` <br><br>
-PUBLISH (to publish files stored on this host into the network as well as keywords corresponding to those files) -> ```SEARCH PUBLISH <file name of file with document to keyword mappings>``` <br><br>
+PUBLISH (to publish files stored on this host into the network as well as keywords corresponding to those files) -> ```SEARCH PUBLISH <file name of file with document to keyword mappings>``` NOTE: see /keys for example document-keyword mapping files<br><br> 
 SEARCH (to search for files in the network which contain all keywords included in the search query) -> ```SEARCH SEARCH <node number of node in the Chord ring to initiate this search from (this can just be the number of the node you issue the command from)> <keyword 1> <keyword 2> ... <keyword n>```<br>
