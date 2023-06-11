@@ -14,3 +14,16 @@
 
 Chord Papers: https://pdos.csail.mit.edu/papers/ton:chord/paper-ton.pdf, https://pdos.csail.mit.edu/papers/chord:sigcomm01/chord_sigcomm.pdf
 
+<b> How to Run: </b>  <br>
+1. Compile from root directory of project. Note that openSSL must be installed as it is used to generate a SHA1 hash.
+```
+make all
+```
+2. Edit main.cpp std::maps in order to change node numbers and IP addresses associated with each node.
+3. Run the application instance on a node via ./chord <Ipv4 address of this node in 4 dotted octet notation> <node number>
+
+<b> List of Avaliable Commands in Application: </b>  <br>
+
+JOIN (to join the network of hosts) -> ```JOIN <Node number of node already in Chord ring that this node can contact to join the ring>```
+RINGSTATE (to have each host in the network print out their successor and predecessor in the Chord ring) -> ```RINGSTATE```
+LEAVE (to leave the network and transfer any files stored on this host to the remaining hosts in the network) -> ```LEAVE```
